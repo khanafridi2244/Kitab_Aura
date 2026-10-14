@@ -1,14 +1,17 @@
 {
-  "name": "server",
+  "name": "kitabaura-server",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "KitabAura - multilingual digital library API",
+  "main": "src/server.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "create-admin": "node scripts/createAdmin.js"
   },
-  "keywords": [],
+  "keywords": ["mern", "library", "pashto", "urdu"],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
