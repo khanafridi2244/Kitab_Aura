@@ -33,4 +33,10 @@ export const errorHandler = (err, req, res, next) => {
     message,
     ...(process.env.NODE_ENV !== "production" && status >= 500 ? { stack: err.stack } : {}),
   });
+
+    // Upload errors from Multer (file too large, etc.)
+  if (err.name === "MulterError") {
+    status = 400;
+    message = err.code === "LIMIT_FILE_SIZE" ? "File is too large (max 10 MB)" : err.message;
+  }
 };
