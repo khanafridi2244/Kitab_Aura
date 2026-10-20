@@ -1,6 +1,7 @@
 import Category from "../models/Category.js";
 import ApiError from "../utils/ApiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import Book from "../models/Book.js";
 
 // GET /api/categories (public)
 export const getCategories = asyncHandler(async (req, res) => {
@@ -33,6 +34,10 @@ export const updateCategory = asyncHandler(async (req, res) => {
 export const deleteCategory = asyncHandler(async (req, res) => {
   const category = await Category.findById(req.params.id);
   if (!category) throw new ApiError(404, "Category not found");
+
+  if (await Book.exists({ category: category._id })) {
+    throw new ApiError(400, "Cannot delete a category that still has books");
+  }
 
   await category.deleteOne();
   res.json({ success: true, message: "Category deleted" });
