@@ -31,7 +31,7 @@ const bookSchema = new mongoose.Schema(
 // Full-text search. "none" turns off English stemming, which works better for Pashto and Urdu text
 bookSchema.index(
   { title: "text", author: "text", description: "text" },
-  { default_language: "none" }
+  { default_language: "none", language_override: "textLanguage" }
 );
 
 // Speeds up the common filters on the browse page
