@@ -143,4 +143,83 @@ export const deleteBook = asyncHandler(async (req, res) => {
   await Promise.all([deleteFile(book.pdfPublicId), deleteFile(book.coverPublicId)]);
   await book.deleteOne();
   res.json({ success: true, message: "Book deleted" });
+
+// POST /api/books/:id/download (logged-in users)
+// Counts the download and returns the PDF link
+export const downloadBook = asyncHandler(async (req, res) => {
+  const book = await Book.findOneAndUpdate(
+    { _id: req.params.id, status: "approved" },
+    { $inc: { downloads: 1 } }, // atomic, so two simultaneous downloads are both counted
+    { new: true }
+  ).select("title pdfUrl downloads");
+
+  if (!book) throw new ApiError(404, "Book not found");
+  res.json({ success: true, title: book.title, downloads: book.downloads, url: book.pdfUrl });
+});
+
+// PUT /api/books/:id (admin or the uploader)
+export const updateBook = asyncHandler(async (req, res) => {
+  const book = await Book.findById(req.params.id);
+  if (!book) throw new ApiError(404, "Book not found");
+
+  const isAdmin = req.user.role === "admin";
+  if (!book.uploadedBy.equals(req.user._id) && !isAdmin) {
+    throw new ApiError(403, "You do not have permission");
+  }
+
+  if (req.body.category && !(await Category.exists({ _id: req.body.category }))) {
+    throw new ApiError(400, "Category does not exist");
+  }
+
+  const pdfFile = req.files?.pdf?.[0];
+  const coverFile = req.files?.cover?.[0];
+  const newFiles = []; // clean these up if saving fails
+  const oldFiles = []; // delete these once the new ones are saved
+
+  try {
+    if (pdfFile) {
+      const pdf = await uploadBuffer(pdfFile.buffer, { folder: "kitabaura/pdfs" });
+      newFiles.push(pdf.public_id);
+      oldFiles.push(book.pdfPublicId);
+      book.pdfUrl = pdf.secure_url;
+      book.pdfPublicId = pdf.public_id;
+      if (req.body.pages === undefined && pdf.pages) book.pages = pdf.pages;
+    }
+
+    if (coverFile) {
+      const cover = await uploadBuffer(coverFile.buffer, {
+        folder: "kitabaura/covers",
+        transformation: [{ width: 600, crop: "limit" }],
+      });
+      newFiles.push(cover.public_id);
+      oldFiles.push(book.coverPublicId);
+      book.coverUrl = cover.secure_url;
+      book.coverPublicId = cover.public_id;
+    }
+
+    // Only these fields can be edited
+    for (const field of ["title", "author", "language", "category", "description", "pages"]) {
+      if (req.body[field] !== undefined) book[field] = req.body[field];
+    }
+
+    // An edit by a normal user goes back to the approval queue
+    if (!isAdmin) {
+      book.status = "pending";
+      book.rejectNote = "";
+    }
+
+    await book.save();
+    await Promise.all(oldFiles.map(deleteFile));
+
+    res.json({
+      success: true,
+      message: isAdmin ? "Book updated" : "Book updated and sent for re-approval",
+      book,
+    });
+  } catch (err) {
+    await Promise.all(newFiles.map(deleteFile));
+    throw err;
+  }
+});
+
 });

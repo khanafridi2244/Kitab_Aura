@@ -7,12 +7,13 @@ import {
   getPendingBooks,
   updateBookStatus,
   deleteBook,
+  downloadBook,
+  updateBook,
 } from "../controllers/book.controller.js";
 import { protect, authorize } from "../middleware/auth.js";
 import { uploadBookFiles } from "../middleware/upload.js";
 import validate from "../middleware/validate.js";
-import { createBookSchema, statusSchema } from "../validators/book.validators.js";
-
+import { createBookSchema, updateBookSchema, statusSchema } from "../validators/book.validators.js";
 const router = Router();
 
 router.get("/", getBooks);
@@ -25,6 +26,8 @@ router.get("/:id", getBookById);
 
 // Order matters: login check, then file parsing, then validation of the text fields
 router.post("/", protect, uploadBookFiles, validate(createBookSchema), createBook);
+router.post("/:id/download", protect, downloadBook);
+router.put("/:id", protect, uploadBookFiles, validate(updateBookSchema), updateBook);
 router.patch("/:id/status", protect, authorize("admin"), validate(statusSchema), updateBookStatus);
 router.delete("/:id", protect, deleteBook);
 
