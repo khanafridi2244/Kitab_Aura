@@ -143,6 +143,7 @@ export const deleteBook = asyncHandler(async (req, res) => {
   await Promise.all([deleteFile(book.pdfPublicId), deleteFile(book.coverPublicId)]);
   await book.deleteOne();
   res.json({ success: true, message: "Book deleted" });
+});
 
 // POST /api/books/:id/download (logged-in users)
 // Counts the download and returns the PDF link
@@ -220,6 +221,4 @@ export const updateBook = asyncHandler(async (req, res) => {
     await Promise.all(newFiles.map(deleteFile));
     throw err;
   }
-});
-
 });
