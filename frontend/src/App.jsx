@@ -3,6 +3,7 @@ import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Browse from "./pages/Browse";
 
 // Navbar on top, page content in the middle, footer at the bottom
 function Layout() {
@@ -39,6 +40,7 @@ export default function App() {
         <Route path="*" element={<NotFound />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/browse" element={<Browse />} />
       </Route>
     </Routes>
   );

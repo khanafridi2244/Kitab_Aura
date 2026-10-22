@@ -22,7 +22,7 @@ export default function Home() {
   return (
     <section className="bg-soft">
       <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <h1 className="text-3xl font-bold text-primary sm:text-4xl">Read in your language</h1>
+        <h1 className="text-3xl font-bold text-primary sm:text-4xl">Read the Books free of cost</h1>
         <p className="mt-3 text-muted">Pashto, Urdu, English and more. Free books, one library.</p>
 
         <form onSubmit={handleSearch} className="mt-8 flex overflow-hidden rounded-full border-2 border-primary bg-white">
