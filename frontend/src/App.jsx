@@ -5,6 +5,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Browse from "./pages/Browse";
 import BookDetail from "./pages/BookDetail";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Upload from "./pages/Upload";
 
 // Navbar on top, page content in the middle, footer at the bottom
 function Layout() {
@@ -43,6 +45,8 @@ export default function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/browse" element={<Browse />} />
         <Route path="/books/:id" element={<BookDetail />} />
+        <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
+
       </Route>
     </Routes>
   );
