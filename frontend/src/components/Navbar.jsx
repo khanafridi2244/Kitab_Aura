@@ -26,7 +26,11 @@ export default function Navbar() {
       <NavLink to="/" end className={linkClass} onClick={close}>Home</NavLink>
       <NavLink to="/browse" className={linkClass} onClick={close}>Browse</NavLink>
       {isAuthenticated && (
-        <NavLink to="/upload" className={linkClass} onClick={close}>Upload</NavLink>
+        <>
+          <NavLink to="/upload" className={linkClass} onClick={close}>Upload</NavLink>
+          <NavLink to="/my-uploads" className={linkClass} onClick={close}>My uploads</NavLink>
+        </>
+      
       )}
       {isAdmin && (
         <NavLink to="/admin" className={linkClass} onClick={close}>Dashboard</NavLink>

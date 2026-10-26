@@ -7,6 +7,7 @@ import Browse from "./pages/Browse";
 import BookDetail from "./pages/BookDetail";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Upload from "./pages/Upload";
+import MyUploads from "./pages/MyUploads";
 
 // Navbar on top, page content in the middle, footer at the bottom
 function Layout() {
@@ -46,7 +47,7 @@ export default function App() {
         <Route path="/browse" element={<Browse />} />
         <Route path="/books/:id" element={<BookDetail />} />
         <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
-
+        <Route path="/my-uploads" element={<ProtectedRoute><MyUploads /></ProtectedRoute>} />
       </Route>
     </Routes>
   );
