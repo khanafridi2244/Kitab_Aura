@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api, { getErrorMessage } from "../../api/axios";
+import StatsPanel from "../../components/admin/StatsPanel";
 
 export default function Dashboard() {
   const [state, setState] = useState({ loading: true, books: [], error: "" });
@@ -7,6 +8,7 @@ export default function Dashboard() {
   const [rejectingId, setRejectingId] = useState(null); // book whose reason box is open
   const [note, setNote] = useState("");
   const [notice, setNotice] = useState({ type: "", text: "" });
+    const [reviewCount, setReviewCount] = useState(0); // bumps after each approve or reject
 
   useEffect(() => {
     let active = true;
@@ -26,6 +28,7 @@ export default function Dashboard() {
       await api.patch(`/books/${book._id}/status`, { status, rejectNote });
       setState((s) => ({ ...s, books: s.books.filter((b) => b._id !== book._id) }));
       setRejectingId(null);
+      setReviewCount((c) => c + 1);
       setNote("");
       setNotice({
         type: "success",
@@ -47,10 +50,10 @@ export default function Dashboard() {
   const { loading, books, error } = state;
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
+    <div className="mx-auto max-w-5xl px-4 py-8">
       <h1 className="text-2xl font-bold text-primary">Admin dashboard</h1>
       <p className="mt-1 text-sm text-muted">Review uploaded books before they go live in the library.</p>
-
+      <StatsPanel refreshKey={reviewCount} />
       <h2 className="mt-8 flex items-center gap-2 text-lg font-bold text-ink">
         Pending approvals
         {!loading && !error && (
