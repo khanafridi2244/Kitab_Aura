@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import api, { getErrorMessage } from "../../api/axios";
 import StatsPanel from "../../components/admin/StatsPanel";
 
@@ -8,7 +9,7 @@ export default function Dashboard() {
   const [rejectingId, setRejectingId] = useState(null); // book whose reason box is open
   const [note, setNote] = useState("");
   const [notice, setNotice] = useState({ type: "", text: "" });
-    const [reviewCount, setReviewCount] = useState(0); // bumps after each approve or reject
+  const [reviewCount, setReviewCount] = useState(0); // bumps after each approve or reject
 
   useEffect(() => {
     let active = true;
@@ -53,6 +54,14 @@ export default function Dashboard() {
     <div className="mx-auto max-w-5xl px-4 py-8">
       <h1 className="text-2xl font-bold text-primary">Admin dashboard</h1>
       <p className="mt-1 text-sm text-muted">Review uploaded books before they go live in the library.</p>
+      <div className="mt-4 flex gap-3">
+        <Link
+          to="/admin/categories"
+          className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-primary hover:bg-soft"
+        >
+          Manage categories
+        </Link>
+      </div>
       <StatsPanel refreshKey={reviewCount} />
       <h2 className="mt-8 flex items-center gap-2 text-lg font-bold text-ink">
         Pending approvals

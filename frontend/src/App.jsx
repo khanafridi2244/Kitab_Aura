@@ -9,6 +9,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Upload from "./pages/Upload";
 import MyUploads from "./pages/MyUploads";
 import Dashboard from "./pages/admin/Dashboard";
+import Categories from "./pages/admin/Categories";
 
 // Navbar on top, page content in the middle, footer at the bottom
 function Layout() {
@@ -50,6 +51,8 @@ export default function App() {
         <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
         <Route path="/my-uploads" element={<ProtectedRoute><MyUploads /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute adminOnly><Dashboard /></ProtectedRoute>} />
+        <Route path="/admin/categories" element={<ProtectedRoute adminOnly><Categories /></ProtectedRoute>} />
+      
       </Route>
     </Routes>
   );
