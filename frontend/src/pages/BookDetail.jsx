@@ -12,8 +12,11 @@ export default function BookDetail() {
   // "id" records which book these results belong to, so loading = (results are for another book)
   const [result, setResult] = useState({ id: null, book: null, error: "" });
   const [downloading, setDownloading] = useState(false);
-  const [downloadError, setDownloadError] = useState("");
+  const [actionError, setActionError] = useState("");
+  const [favorited, setFavorited] = useState(false);
+  const [favBusy, setFavBusy] = useState(false);
   const loading = result.id !== id;
+  const isFav = isAuthenticated && favorited;
 
   useEffect(() => {
     let active = true;
@@ -26,14 +29,26 @@ export default function BookDetail() {
     };
   }, [id]);
 
+  // Is this book already in the user's favorites? (colours the heart)
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    let active = true;
+    api
+      .get("/users/favorites/ids")
+      .then(({ data }) => active && setFavorited(data.ids.includes(id)))
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [id, isAuthenticated]);
+
+  const goToLogin = () => navigate("/login", { state: { from: location.pathname } });
+
   const handleDownload = async () => {
-    // Guests are sent to login, then brought back to this page
-    if (!isAuthenticated) {
-      return navigate("/login", { state: { from: location.pathname } });
-    }
+    if (!isAuthenticated) return goToLogin();
 
     setDownloading(true);
-    setDownloadError("");
+    setActionError("");
     try {
       const { data } = await api.post(`/books/${id}/download`);
 
@@ -43,9 +58,24 @@ export default function BookDetail() {
       // fl_attachment tells Cloudinary to download the file instead of opening it
       window.location.assign(data.url.replace("/upload/", "/upload/fl_attachment/"));
     } catch (err) {
-      setDownloadError(getErrorMessage(err));
+      setActionError(getErrorMessage(err));
     } finally {
       setDownloading(false);
+    }
+  };
+
+  const handleFavorite = async () => {
+    if (!isAuthenticated) return goToLogin();
+
+    setFavBusy(true);
+    setActionError("");
+    try {
+      const { data } = await api.post(`/users/favorites/${id}`);
+      setFavorited(data.favorited);
+    } catch (err) {
+      setActionError(getErrorMessage(err));
+    } finally {
+      setFavBusy(false);
     }
   };
 
@@ -132,16 +162,32 @@ export default function BookDetail() {
           </div>
 
           <div className="mt-6">
-            <button
-              onClick={handleDownload}
-              disabled={downloading}
-              className="rounded-lg bg-accent px-6 py-2.5 font-semibold text-white hover:opacity-90 disabled:opacity-60"
-            >
-              {downloading ? "Preparing..." : isAuthenticated ? "Download PDF" : "Log in to download"}
-            </button>
-            {downloadError && (
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={handleDownload}
+                disabled={downloading}
+                className="rounded-lg bg-accent px-6 py-2.5 font-semibold text-white hover:opacity-90 disabled:opacity-60"
+              >
+                {downloading ? "Preparing..." : isAuthenticated ? "Download PDF" : "Log in to download"}
+              </button>
+
+              <button
+                onClick={handleFavorite}
+                disabled={favBusy}
+                aria-pressed={isFav}
+                className={`rounded-lg border px-5 py-2.5 font-semibold transition disabled:opacity-60 ${
+                  isFav
+                    ? "border-red-300 bg-red-50 text-red-600"
+                    : "border-gray-300 text-primary hover:bg-soft"
+                }`}
+              >
+                {isFav ? <>&#9829; Saved</> : <>&#9825; Save</>}
+              </button>
+            </div>
+
+            {actionError && (
               <p role="alert" className="mt-3 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">
-                {downloadError}
+                {actionError}
               </p>
             )}
           </div>

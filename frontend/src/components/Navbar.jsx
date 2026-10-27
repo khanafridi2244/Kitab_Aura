@@ -29,6 +29,7 @@ export default function Navbar() {
         <>
           <NavLink to="/upload" className={linkClass} onClick={close}>Upload</NavLink>
           <NavLink to="/my-uploads" className={linkClass} onClick={close}>My uploads</NavLink>
+          <NavLink to="/favorites" className={linkClass} onClick={close}>Favorites</NavLink>
         </>
       
       )}
