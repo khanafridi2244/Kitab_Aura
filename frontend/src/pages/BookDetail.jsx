@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import api, { getErrorMessage } from "../api/axios";
 import { useAuth } from "../hooks/useAuth";
+import ReviewsSection from "../components/ReviewsSection";
 
 export default function BookDetail() {
   const { id } = useParams();
@@ -43,6 +44,19 @@ export default function BookDetail() {
   }, [id, isAuthenticated]);
 
   const goToLogin = () => navigate("/login", { state: { from: location.pathname } });
+
+    // After a review is saved or deleted, refresh just the rating numbers
+  const refreshRating = () =>
+    api
+      .get(`/books/${id}`)
+      .then(({ data }) =>
+        setResult((r) =>
+          r.book
+            ? { ...r, book: { ...r.book, avgRating: data.book.avgRating, ratingsCount: data.book.ratingsCount } }
+            : r
+        )
+      )
+      .catch(() => {});
 
   const handleDownload = async () => {
     if (!isAuthenticated) return goToLogin();
@@ -198,6 +212,7 @@ export default function BookDetail() {
           </p>
         </div>
       </div>
+      <ReviewsSection key={id} bookId={id} onChanged={refreshRating} />
     </div>
   );
 }
