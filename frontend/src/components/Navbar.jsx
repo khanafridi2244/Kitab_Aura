@@ -41,8 +41,9 @@ export default function Navbar() {
 
   const authArea = loading ? null : isAuthenticated ? (
     <div className="flex items-center gap-3">
-      <span className="text-sm text-white/90 xl:inline lg:hidden">Hi, {user.name.split(" ")[0]}</span>
-      <button
+      <Link to="/profile" onClick={close} className="text-sm font-medium text-white/90 hover:underline">
+        Hi, {user.name.split(" ")[0]}
+      </Link>      <button
         onClick={handleLogout}
         className="rounded-lg bg-white/15 px-3 py-1.5 text-sm font-medium text-white hover:bg-white/25"
       >

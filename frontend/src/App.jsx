@@ -1,18 +1,19 @@
 import { Routes, Route, Outlet, Link } from "react-router-dom";
 import Navbar from "./components/Navbar";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Browse from "./pages/Browse";
 import BookDetail from "./pages/BookDetail";
-import ProtectedRoute from "./components/ProtectedRoute";
 import Upload from "./pages/Upload";
 import MyUploads from "./pages/MyUploads";
+import Favorites from "./pages/Favorites";
+import Reader from "./pages/Reader";
+import MyLibrary from "./pages/MyLibrary";
+import Profile from "./pages/Profile";
 import Dashboard from "./pages/admin/Dashboard";
 import Categories from "./pages/admin/Categories";
-import Favorites from "./pages/Favorites";
-import MyLibrary from "./pages/MyLibrary";
-import Reader from "./pages/Reader";
 
 // Navbar on top, page content in the middle, footer at the bottom
 function Layout() {
@@ -33,7 +34,7 @@ function NotFound() {
   return (
     <div className="px-4 py-20 text-center">
       <h1 className="text-5xl font-bold text-primary">404</h1>
-      <p className="mt-2 text-muted">This page does not exist (yet).</p>
+      <p className="mt-2 text-muted">This page does not exist.</p>
       <Link to="/" className="mt-4 inline-block font-semibold text-primary underline">
         Back to home
       </Link>
@@ -46,18 +47,19 @@ export default function App() {
     <Routes>
       <Route element={<Layout />}>
         <Route path="/" element={<Home />} />
-        <Route path="*" element={<NotFound />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/browse" element={<Browse />} />
         <Route path="/books/:id" element={<BookDetail />} />
         <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
         <Route path="/my-uploads" element={<ProtectedRoute><MyUploads /></ProtectedRoute>} />
-        <Route path="/admin" element={<ProtectedRoute adminOnly><Dashboard /></ProtectedRoute>} />
-        <Route path="/admin/categories" element={<ProtectedRoute adminOnly><Categories /></ProtectedRoute>} />
-        <Route path="/library" element={<ProtectedRoute><MyLibrary /></ProtectedRoute>} />        
         <Route path="/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
         <Route path="/read/:id" element={<ProtectedRoute><Reader /></ProtectedRoute>} />
+        <Route path="/library" element={<ProtectedRoute><MyLibrary /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/admin" element={<ProtectedRoute adminOnly><Dashboard /></ProtectedRoute>} />
+        <Route path="/admin/categories" element={<ProtectedRoute adminOnly><Categories /></ProtectedRoute>} />
+        <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
   );
