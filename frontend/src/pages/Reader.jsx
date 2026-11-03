@@ -16,6 +16,7 @@ function Viewer({ bookId, book, startPage }) {
   const [zoomIndex, setZoomIndex] = useState(1);
   const [loadError, setLoadError] = useState("");
   const [boxWidth, setBoxWidth] = useState(800);
+  const [toast, setToast] = useState("");
   const wrapRef = useRef(null);
   const lastSaved = useRef(startPage);
 
@@ -47,11 +48,23 @@ function Viewer({ bookId, book, startPage }) {
     const timer = setTimeout(() => {
       api
         .put(`/reading/${bookId}`, { page })
-        .then(() => (lastSaved.current = page))
+        .then(({ data }) => {
+          lastSaved.current = page;
+          if (data.newBadges?.length) {
+            setToast(`Badge earned: ${data.newBadges.map((b) => b.title).join(", ")}`);
+          }
+        })
         .catch(() => {}); // saving progress is a bonus, never interrupt the reader
     }, 500);
     return () => clearTimeout(timer);
   }, [page, numPages, bookId]);
+
+  // The badge pop-up disappears by itself
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(""), 6000);
+    return () => clearTimeout(timer);
+  }, [toast]);
 
   const onLoadSuccess = ({ numPages: total }) => {
     setNumPages(total);
@@ -70,6 +83,19 @@ function Viewer({ bookId, book, startPage }) {
 
   return (
     <div className="bg-gray-100">
+      {toast && (
+        <div
+          role="status"
+          className="fixed bottom-4 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-lg bg-ink px-5 py-3 text-sm font-semibold text-white shadow-lg"
+        >
+          <span className="text-accent">&#9733;</span>
+          <span>{toast}</span>
+          <Link to="/challenges" className="text-accent underline">
+            View
+          </Link>
+        </div>
+      )}
+
       {/* Toolbar */}
       <div className="sticky top-14 z-40 border-b border-gray-200 bg-white">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2">

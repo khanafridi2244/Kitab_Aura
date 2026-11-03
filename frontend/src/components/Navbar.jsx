@@ -25,10 +25,12 @@ export default function Navbar() {
     <>
       <NavLink to="/" end className={linkClass} onClick={close}>Home</NavLink>
       <NavLink to="/browse" className={linkClass} onClick={close}>Browse</NavLink>
+      <NavLink to="/popular" className={linkClass} onClick={close}>Popular</NavLink>
       {isAuthenticated && (
         <>
           <NavLink to="/library" className={linkClass} onClick={close}>My library</NavLink>
           <NavLink to="/favorites" className={linkClass} onClick={close}>Favorites</NavLink>
+          <NavLink to="/challenges" className={linkClass} onClick={close}>Challenges</NavLink>
           <NavLink to="/upload" className={linkClass} onClick={close}>Upload</NavLink>
           <NavLink to="/my-uploads" className={linkClass} onClick={close}>My uploads</NavLink>
         </>
@@ -43,7 +45,8 @@ export default function Navbar() {
     <div className="flex items-center gap-3">
       <Link to="/profile" onClick={close} className="text-sm font-medium text-white/90 hover:underline">
         Hi, {user.name.split(" ")[0]}
-      </Link>      <button
+      </Link>
+      <button
         onClick={handleLogout}
         className="rounded-lg bg-white/15 px-3 py-1.5 text-sm font-medium text-white hover:bg-white/25"
       >
@@ -67,18 +70,18 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 bg-primary shadow">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
+      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
         <Link to="/" className="text-xl font-bold text-white">
           Kitab<span className="text-accent">Aura</span>
         </Link>
 
         {/* Desktop */}
-        <nav className="hidden items-center gap-1 lg:flex">{links}</nav>
-        <div className="hidden lg:block">{authArea}</div>
+        <nav className="hidden items-center gap-1 xl:flex">{links}</nav>
+        <div className="hidden xl:block">{authArea}</div>
 
         {/* Mobile menu button */}
         <button
-          className="rounded-lg p-2 text-white lg:hidden"
+          className="rounded-lg p-2 text-white xl:hidden"
           onClick={() => setOpen(!open)}
           aria-label="Toggle menu"
           aria-expanded={open}
@@ -91,7 +94,7 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {open && (
-        <div className="space-y-3 border-t border-white/10 px-4 pb-4 pt-3 lg:hidden">
+        <div className="space-y-3 border-t border-white/10 px-4 pb-4 pt-3 xl:hidden">
           <nav className="flex flex-col gap-1">{links}</nav>
           {authArea}
         </div>

@@ -14,6 +14,7 @@ import MyLibrary from "./pages/MyLibrary";
 import Profile from "./pages/Profile";
 import Onboarding from "./pages/Onboarding";
 import Popular from "./pages/Popular";
+import Challenges from "./pages/Challenges";
 import Dashboard from "./pages/admin/Dashboard";
 import Categories from "./pages/admin/Categories";
 
@@ -57,6 +58,7 @@ export default function App() {
         <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
         <Route path="/my-uploads" element={<ProtectedRoute><MyUploads /></ProtectedRoute>} />
         <Route path="/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
+        <Route path="/challenges" element={<ProtectedRoute><Challenges /></ProtectedRoute>} />        
         <Route path="/read/:id" element={<ProtectedRoute><Reader /></ProtectedRoute>} />
         <Route path="/library" element={<ProtectedRoute><MyLibrary /></ProtectedRoute>} />
         <Route path="/welcome" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />        
