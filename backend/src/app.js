@@ -11,6 +11,7 @@ import adminRoutes from "./routes/admin.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import reviewRoutes from "./routes/review.routes.js";
 import readingRoutes from "./routes/reading.routes.js";
+import homeRoutes from "./routes/home.routes.js";
 import { notFound, errorHandler } from "./middleware/error.js";
 
 const app = express();
@@ -38,6 +39,7 @@ app.use("/api/books", bookRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/reading", readingRoutes);
+app.use("/api/home", homeRoutes);
 
 // These two must stay last
 app.use(notFound);
