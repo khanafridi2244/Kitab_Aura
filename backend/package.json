@@ -4,11 +4,12 @@
   "description": "KitabAura - multilingual digital library API",
   "main": "src/server.js",
   "type": "module",
-  "scripts": {
-    "start": "node src/server.js",
-    "dev": "nodemon src/server.js",
-    "create-admin": "node scripts/createAdmin.js"
-  },
+"scripts": {
+  "start": "node src/server.js",
+  "dev": "nodemon src/server.js",
+  "create-admin": "node scripts/createAdmin.js",
+  "seed:categories": "node scripts/seedCategories.js"
+},
   "keywords": [
     "mern",
     "library",

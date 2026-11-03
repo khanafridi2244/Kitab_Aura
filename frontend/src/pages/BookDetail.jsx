@@ -44,7 +44,9 @@ export default function BookDetail() {
   }, [id, isAuthenticated]);
 
   const goToLogin = () => navigate("/login", { state: { from: location.pathname } });
-
+ 
+    const handleRead = () =>
+    isAuthenticated ? navigate(`/read/${id}`) : navigate("/login", { state: { from: `/read/${id}` } });
     // After a review is saved or deleted, refresh just the rating numbers
   const refreshRating = () =>
     api
@@ -170,6 +172,12 @@ export default function BookDetail() {
             ) : (
               <span>No ratings yet</span>
             )}
+              <button
+                onClick={handleRead}
+                className="rounded-lg bg-primary px-6 py-2.5 font-semibold text-white hover:bg-primary-dark"
+              >
+                {isAuthenticated ? "Read online" : "Log in to read"}
+              </button>
             <span>{book.downloads} downloads</span>
             <span>Added {new Date(book.createdAt).toLocaleDateString()}</span>
             {book.uploadedBy?.name && <span>Shared by {book.uploadedBy.name}</span>}

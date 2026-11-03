@@ -8,8 +8,10 @@ import authRoutes from "./routes/auth.routes.js";
 import categoryRoutes from "./routes/category.routes.js";
 import bookRoutes from "./routes/book.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
-import { notFound, errorHandler } from "./middleware/error.js";
+import userRoutes from "./routes/user.routes.js";
 import reviewRoutes from "./routes/review.routes.js";
+import readingRoutes from "./routes/reading.routes.js";
+import { notFound, errorHandler } from "./middleware/error.js";
 
 const app = express();
 
@@ -31,10 +33,11 @@ app.get("/api/health", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/categories", categoryRoutes);
-app.use("/api/books/:bookId/reviews", reviewRoutes);
+app.use("/api/books/:bookId/reviews", reviewRoutes); // must stay above the books line
 app.use("/api/books", bookRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/reading", readingRoutes);
 
 // These two must stay last
 app.use(notFound);
