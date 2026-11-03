@@ -4,6 +4,7 @@ import ReadingLog from "../models/ReadingLog.js";
 import ApiError from "../utils/ApiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { dayKey } from "../utils/dates.js";
+import { checkBadges } from "../services/challenges.js";
 
 // Turning at most this many pages forward in one save counts as reading.
 // A bigger jump (for example straight to the last page) is not counted
@@ -58,11 +59,22 @@ export const saveProgress = asyncHandler(async (req, res) => {
 
   // Count the pages turned today (small forward steps only)
   const step = page - previousPage;
-  if (step > 0 && step <= MAX_STEP) {
+  const counted = step > 0 && step <= MAX_STEP;
+  if (counted) {
     try {
       await ReadingLog.addPages(req.user._id, step, dayKey());
     } catch (err) {
       console.error("Reading log failed:", err.message); // never block saving the reader's place
+    }
+  }
+
+  // Award any badge that was just earned
+  let newBadges = [];
+  if (counted || (reachedEnd && !wasCompleted)) {
+    try {
+      newBadges = await checkBadges(req.user._id);
+    } catch (err) {
+      console.error("Badge check failed:", err.message);
     }
   }
 
@@ -71,5 +83,6 @@ export const saveProgress = asyncHandler(async (req, res) => {
     page: progress.page,
     status: progress.status,
     percent: percentOf(progress, book.pages),
+    newBadges,
   });
 });

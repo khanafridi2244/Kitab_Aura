@@ -14,6 +14,7 @@ import readingRoutes from "./routes/reading.routes.js";
 import homeRoutes from "./routes/home.routes.js";
 import libraryRoutes from "./routes/library.routes.js";
 import activityRoutes from "./routes/activity.routes.js";
+import challengeRoutes from "./routes/challenge.routes.js";
 import { notFound, errorHandler } from "./middleware/error.js";
 
 const app = express();
@@ -44,6 +45,7 @@ app.use("/api/reading", readingRoutes);
 app.use("/api/home", homeRoutes);
 app.use("/api/library", libraryRoutes);
 app.use("/api/activity", activityRoutes);
+app.use("/api/challenges", challengeRoutes);
 
 // These two must stay last
 app.use(notFound);
