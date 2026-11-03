@@ -4,6 +4,7 @@ import ApiError from "../utils/ApiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { uploadBuffer, deleteFile } from "../utils/cloudinaryUpload.js";
 import Review from "../models/Review.js";
+import ReadingProgress from "../models/ReadingProgress.js";
 
 const PUBLIC_FIELDS = "-pdfUrl -pdfPublicId -coverPublicId -rejectNote";
 const CATEGORY_FIELDS = "name nameUrdu namePashto slug";
@@ -144,6 +145,7 @@ export const deleteBook = asyncHandler(async (req, res) => {
   await Promise.all([deleteFile(book.pdfPublicId), deleteFile(book.coverPublicId)]);
   await book.deleteOne();
   await Review.deleteMany({ book: book._id });
+  await ReadingProgress.deleteMany({ book: book._id });
   res.json({ success: true, message: "Book deleted" });
 });
 

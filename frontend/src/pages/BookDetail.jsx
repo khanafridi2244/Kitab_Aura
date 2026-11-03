@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import api, { getErrorMessage } from "../api/axios";
 import { useAuth } from "../hooks/useAuth";
 import ReviewsSection from "../components/ReviewsSection";
+import ReadingStatus from "../components/ReadingStatus";
 
 export default function BookDetail() {
   const { id } = useParams();
@@ -212,6 +213,7 @@ export default function BookDetail() {
                 {actionError}
               </p>
             )}
+            <ReadingStatus key={id} bookId={id} />
           </div>
 
           <h2 className="mt-8 text-lg font-bold text-primary">About this book</h2>
