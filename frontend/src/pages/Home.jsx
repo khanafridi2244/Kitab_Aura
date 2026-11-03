@@ -115,7 +115,7 @@ export default function Home() {
               </div>
             )}
 
-            <BookRow title="Trending" to="/browse?sort=popular" books={data.trending} />
+            <BookRow title="Trending" to="/popular" books={data.trending} />
             <BookRow title="Newly added" to="/browse" books={data.newest} />
           </>
         )}

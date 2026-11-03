@@ -1,7 +1,13 @@
 import { Router } from "express";
 import { z } from "zod";
-import { getReviews, getMyReview, saveReview, deleteReview } from "../controllers/review.controller.js";
-import { protect } from "../middleware/auth.js";
+import {
+  getReviews,
+  getMyReview,
+  saveReview,
+  toggleHelpful,
+  deleteReview,
+} from "../controllers/review.controller.js";
+import { protect, optionalAuth } from "../middleware/auth.js";
 import validate from "../middleware/validate.js";
 
 // mergeParams lets this router read :bookId from the path it is mounted on
@@ -16,9 +22,10 @@ const reviewSchema = z.object({
   comment: z.string().trim().max(1000, "Comment is too long (max 1000 characters)").optional(),
 });
 
-router.get("/", getReviews);
+router.get("/", optionalAuth, getReviews);
 router.get("/mine", protect, getMyReview);
 router.put("/", protect, validate(reviewSchema), saveReview);
+router.post("/:reviewId/helpful", protect, toggleHelpful);
 router.delete("/:reviewId", protect, deleteReview);
 
 export default router;

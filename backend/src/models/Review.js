@@ -12,6 +12,10 @@ const reviewSchema = new mongoose.Schema(
       max: [5, "Rating must be between 1 and 5"],
     },
     comment: { type: String, trim: true, maxlength: 1000, default: "" },
+
+    // Who found this review helpful. Hidden by default so ids are never sent to other users
+    helpful: { type: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], select: false },
+    helpfulCount: { type: Number, default: 0, min: 0 },
   },
   { timestamps: true }
 );
@@ -19,6 +23,7 @@ const reviewSchema = new mongoose.Schema(
 // One review per user per book, enforced by the database itself
 reviewSchema.index({ book: 1, user: 1 }, { unique: true });
 reviewSchema.index({ book: 1, createdAt: -1 });
+reviewSchema.index({ book: 1, helpfulCount: -1, createdAt: -1 });
 
 // Recount the average from the reviews, so the book's numbers can never drift out of sync
 reviewSchema.statics.recalculate = async function (bookId) {

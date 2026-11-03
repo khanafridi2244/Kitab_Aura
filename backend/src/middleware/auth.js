@@ -27,6 +27,21 @@ export const protect = asyncHandler(async (req, res, next) => {
   next();
 });
 
+// optionalAuth: sets req.user when a valid token is sent, otherwise carries on as a guest
+export const optionalAuth = asyncHandler(async (req, res, next) => {
+  const header = req.headers.authorization || "";
+  if (header.startsWith("Bearer ")) {
+    try {
+      const decoded = jwt.verify(header.split(" ")[1], process.env.JWT_ACCESS_SECRET);
+      const user = await User.findById(decoded.id);
+      if (user) req.user = user;
+    } catch {
+      // an invalid or expired token is treated like a guest
+    }
+  }
+  next();
+});
+
 // authorize: check the role, use it after protect
 // Example: router.delete("/:id", protect, authorize("admin"), deleteBook)
 export const authorize =

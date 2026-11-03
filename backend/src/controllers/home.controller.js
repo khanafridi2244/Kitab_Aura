@@ -1,4 +1,5 @@
-import Book from "../models/Book.js";
+import Book, { LANGUAGES } from "../models/Book.js";
+import ApiError from "../utils/ApiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -61,3 +62,30 @@ export const getHome = asyncHandler(async (req, res) => {
 
   res.json({ success: true, daily: { bookOfTheDay, pashto, urdu }, trending, newest });
 });
+  const POPULAR_SORTS = {
+  downloads: { sort: "-downloads -avgRating", extra: {} },
+  rating: { sort: "-avgRating -ratingsCount", extra: { ratingsCount: { $gte: 1 } } },
+  reviews: { sort: "-ratingsCount -avgRating", extra: { ratingsCount: { $gte: 1 } } },
+};
+
+// GET /api/home/popular (public) ?by=downloads|rating|reviews &language=pashto
+export const getPopular = asyncHandler(async (req, res) => {
+  const by = Object.hasOwn(POPULAR_SORTS, req.query.by) ? req.query.by : "downloads";
+  const filter = { status: "approved", ...POPULAR_SORTS[by].extra };
+
+  if (req.query.language) {
+    const language = String(req.query.language).toLowerCase();
+    if (!LANGUAGES.includes(language)) throw new ApiError(400, "Invalid language");
+    filter.language = language;
+  }
+
+  const books = await Book.find(filter)
+    .sort(POPULAR_SORTS[by].sort)
+    .limit(20)
+    .select(LIST_FIELDS)
+    .populate("category", CATEGORY_FIELDS);
+
+  res.json({ success: true, by, count: books.length, books });
+});
+
+

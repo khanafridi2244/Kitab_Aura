@@ -57,7 +57,8 @@ export default function ReviewsSection({ bookId, onChanged }) {
 
   // "key" records which request these results belong to, so loading = (results are outdated)
   const [reloadKey, setReloadKey] = useState(0);
-  const key = `${bookId}:${reloadKey}`;
+  const [sort, setSort] = useState("newest");
+  const key = `${bookId}:${reloadKey}:${sort}`;
   const [result, setResult] = useState({ key: null, items: [], total: 0, page: 1, error: "" });
   const loading = result.key !== key;
 
@@ -66,15 +67,16 @@ export default function ReviewsSection({ bookId, onChanged }) {
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [moreBusy, setMoreBusy] = useState(false);
+  const [helpfulBusy, setHelpfulBusy] = useState(null);
   const [notice, setNotice] = useState({ type: "", text: "" });
 
   const myReview = isAuthenticated ? mine : null;
 
-  // Load the first page of reviews (again whenever reloadKey changes)
+  // Load the first page of reviews (again whenever the book, sort or reloadKey changes)
   useEffect(() => {
     let active = true;
     api
-      .get(`/books/${bookId}/reviews`, { params: { page: 1, limit: PAGE_SIZE } })
+      .get(`/books/${bookId}/reviews`, { params: { page: 1, limit: PAGE_SIZE, sort } })
       .then(
         ({ data }) =>
           active && setResult({ key, items: data.reviews, total: data.total, page: 1, error: "" })
@@ -86,7 +88,7 @@ export default function ReviewsSection({ bookId, onChanged }) {
     return () => {
       active = false;
     };
-  }, [bookId, key]);
+  }, [bookId, sort, key]);
 
   // Load this user's own review, so the form starts filled in
   useEffect(() => {
@@ -110,7 +112,7 @@ export default function ReviewsSection({ bookId, onChanged }) {
     setMoreBusy(true);
     try {
       const { data } = await api.get(`/books/${bookId}/reviews`, {
-        params: { page: result.page + 1, limit: PAGE_SIZE },
+        params: { page: result.page + 1, limit: PAGE_SIZE, sort },
       });
       setResult((r) => ({ ...r, items: [...r.items, ...data.reviews], page: data.page, total: data.total }));
     } catch (err) {
@@ -161,13 +163,47 @@ export default function ReviewsSection({ bookId, onChanged }) {
     }
   };
 
+  const toggleHelpful = async (review) => {
+    setHelpfulBusy(review._id);
+    setNotice({ type: "", text: "" });
+    try {
+      const { data } = await api.post(`/books/${bookId}/reviews/${review._id}/helpful`);
+      setResult((r) => ({
+        ...r,
+        items: r.items.map((i) =>
+          i._id === review._id ? { ...i, markedHelpful: data.helpful, helpfulCount: data.helpfulCount } : i
+        ),
+      }));
+    } catch (err) {
+      setNotice({ type: "error", text: getErrorMessage(err) });
+    } finally {
+      setHelpfulBusy(null);
+    }
+  };
+
   const { items, total } = result;
 
   return (
     <section className="mt-12 border-t border-gray-200 pt-8" aria-labelledby="reviews-heading">
-      <h2 id="reviews-heading" className="text-xl font-bold text-primary">
-        Reviews {!loading && <span className="text-base font-medium text-muted">({total})</span>}
-      </h2>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 id="reviews-heading" className="text-xl font-bold text-primary">
+          Reviews {!loading && <span className="text-base font-medium text-muted">({total})</span>}
+        </h2>
+
+        {total > 1 && (
+          <label className="flex items-center gap-2 text-sm">
+            <span className="text-muted">Sort by</span>
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value)}
+              className="rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-sm outline-none focus:border-primary"
+            >
+              <option value="newest">Newest</option>
+              <option value="helpful">Most helpful</option>
+            </select>
+          </label>
+        )}
+      </div>
 
       {notice.text && (
         <div
@@ -263,6 +299,30 @@ export default function ReviewsSection({ bookId, onChanged }) {
                       )}
                     </div>
                     {r.comment && <p className="mt-2 whitespace-pre-line text-sm leading-relaxed">{r.comment}</p>}
+
+                    <div className="mt-3 text-sm">
+                      {isAuthenticated && !isOwn ? (
+                        <button
+                          onClick={() => toggleHelpful(r)}
+                          disabled={helpfulBusy === r._id}
+                          aria-pressed={r.markedHelpful}
+                          className={`rounded-full border px-3 py-1 text-xs font-semibold transition disabled:opacity-60 ${
+                            r.markedHelpful
+                              ? "border-primary bg-primary text-white"
+                              : "border-gray-300 text-primary hover:bg-soft"
+                          }`}
+                        >
+                          {r.markedHelpful ? "Marked helpful" : "Helpful"}
+                          {r.helpfulCount > 0 && <> ({r.helpfulCount})</>}
+                        </button>
+                      ) : (
+                        r.helpfulCount > 0 && (
+                          <span className="text-xs text-muted">
+                            {r.helpfulCount} {r.helpfulCount === 1 ? "person" : "people"} found this helpful
+                          </span>
+                        )
+                      )}
+                    </div>
                   </li>
                 );
               })}

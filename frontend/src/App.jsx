@@ -13,6 +13,7 @@ import Reader from "./pages/Reader";
 import MyLibrary from "./pages/MyLibrary";
 import Profile from "./pages/Profile";
 import Onboarding from "./pages/Onboarding";
+import Popular from "./pages/Popular";
 import Dashboard from "./pages/admin/Dashboard";
 import Categories from "./pages/admin/Categories";
 
@@ -51,6 +52,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/browse" element={<Browse />} />
+        <Route path="/popular" element={<Popular />} />
         <Route path="/books/:id" element={<BookDetail />} />
         <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
         <Route path="/my-uploads" element={<ProtectedRoute><MyUploads /></ProtectedRoute>} />
