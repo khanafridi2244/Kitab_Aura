@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api, { getErrorMessage } from "../api/axios";
 import { useAuth } from "../hooks/useAuth";
+import PreferencesForm from "../components/PreferencesForm";
 
 const PRESETS = [35, 70, 140]; // 5, 10 and 20 pages a day
 
@@ -115,8 +116,13 @@ export default function Profile() {
         />
       )}
 
-      {/* Preferences go here (added in the next batch) */}
-    </div>
+      <section className="mt-6 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <h2 className="text-sm font-bold text-primary">Your reading preferences</h2>
+        <p className="mt-1 text-sm text-muted">Used for the Recommended for you section on the home page.</p>
+        <div className="mt-4">
+          <PreferencesForm />
+        </div>
+      </section>    </div>
   );
 }
 

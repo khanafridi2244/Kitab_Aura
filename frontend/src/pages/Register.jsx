@@ -33,7 +33,7 @@ export default function Register() {
   };
 
   if (loading) return null;
-  if (isAuthenticated) return <Navigate to="/" replace />;
+  if (isAuthenticated) return <Navigate to="/welcome" replace />;
 
   return (
     <div className="mx-auto max-w-md px-4 py-12">

@@ -4,6 +4,7 @@ import api, { getErrorMessage } from "../api/axios";
 import BookRow from "../components/BookRow";
 import FeaturedBook from "../components/FeaturedBook";
 import ContinueReading from "../components/ContinueReading";
+import RecommendedRow from "../components/RecommendedRow";
 
 const LANGUAGES = [
   { key: "pashto", label: "Pashto" },
@@ -76,8 +77,9 @@ export default function Home() {
 
       <div className="mx-auto max-w-6xl px-4">
         <ContinueReading />
+         <RecommendedRow />
       </div>
-      
+
       <div className="mx-auto max-w-6xl px-4 pb-12" aria-live="polite">
         {loading ? (
           <div className="mt-8 space-y-4">
