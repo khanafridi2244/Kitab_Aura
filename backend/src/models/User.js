@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 
+const LANGUAGES = ["pashto", "urdu", "english", "arabic", "persian"];
+
 const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true, minlength: 2, maxlength: 60 },
@@ -10,6 +12,13 @@ const userSchema = new mongoose.Schema(
     favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: "Book" }],
     avatar: { type: String, default: "" },
     uiLanguage: { type: String, enum: ["en", "ur", "ps"], default: "en" },
+
+    // Reading goal in pages per week, 0 means no goal
+    weeklyGoal: { type: Number, default: 0, min: 0, max: 5000 },
+
+    // Used for "Recommended for you"
+    preferredLanguages: [{ type: String, enum: LANGUAGES }],
+    interests: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }],
   },
   { timestamps: true }
 );

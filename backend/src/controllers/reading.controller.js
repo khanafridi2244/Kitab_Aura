@@ -1,7 +1,13 @@
 import Book from "../models/Book.js";
 import ReadingProgress, { percentOf } from "../models/ReadingProgress.js";
+import ReadingLog from "../models/ReadingLog.js";
 import ApiError from "../utils/ApiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import { dayKey } from "../utils/dates.js";
+
+// Turning at most this many pages forward in one save counts as reading.
+// A bigger jump (for example straight to the last page) is not counted
+const MAX_STEP = 10;
 
 // GET /api/reading/:bookId
 // Gives a logged-in user the PDF link and the page they stopped at. Opening the reader marks the book as "reading"
@@ -37,8 +43,9 @@ export const saveProgress = asyncHandler(async (req, res) => {
   const reachedEnd = !!book.pages && page >= book.pages;
 
   // A finished book stays finished, even if the user flips back to read it again
-  const existing = await ReadingProgress.findOne({ user: req.user._id, book: bookId }).select("status");
+  const existing = await ReadingProgress.findOne({ user: req.user._id, book: bookId }).select("status page");
   const wasCompleted = existing?.status === "completed";
+  const previousPage = existing?.page ?? 1;
 
   const set = { page, status: reachedEnd || wasCompleted ? "completed" : "reading" };
   if (reachedEnd && !wasCompleted) set.completedAt = new Date();
@@ -48,6 +55,16 @@ export const saveProgress = asyncHandler(async (req, res) => {
     { $set: set },
     { upsert: true, new: true, setDefaultsOnInsert: true }
   );
+
+  // Count the pages turned today (small forward steps only)
+  const step = page - previousPage;
+  if (step > 0 && step <= MAX_STEP) {
+    try {
+      await ReadingLog.addPages(req.user._id, step, dayKey());
+    } catch (err) {
+      console.error("Reading log failed:", err.message); // never block saving the reader's place
+    }
+  }
 
   res.json({
     success: true,
