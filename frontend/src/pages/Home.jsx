@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import api, { getErrorMessage } from "../api/axios";
 import BookRow from "../components/BookRow";
 import FeaturedBook from "../components/FeaturedBook";
+import ContinueReading from "../components/ContinueReading";
 
 const LANGUAGES = [
   { key: "pashto", label: "Pashto" },
@@ -73,6 +74,10 @@ export default function Home() {
         </div>
       </section>
 
+      <div className="mx-auto max-w-6xl px-4">
+        <ContinueReading />
+      </div>
+      
       <div className="mx-auto max-w-6xl px-4 pb-12" aria-live="polite">
         {loading ? (
           <div className="mt-8 space-y-4">

@@ -27,11 +27,11 @@ export default function Navbar() {
       <NavLink to="/browse" className={linkClass} onClick={close}>Browse</NavLink>
       {isAuthenticated && (
         <>
+          <NavLink to="/library" className={linkClass} onClick={close}>My library</NavLink>
+          <NavLink to="/favorites" className={linkClass} onClick={close}>Favorites</NavLink>
           <NavLink to="/upload" className={linkClass} onClick={close}>Upload</NavLink>
           <NavLink to="/my-uploads" className={linkClass} onClick={close}>My uploads</NavLink>
-          <NavLink to="/favorites" className={linkClass} onClick={close}>Favorites</NavLink>
         </>
-      
       )}
       {isAdmin && (
         <NavLink to="/admin" className={linkClass} onClick={close}>Dashboard</NavLink>
@@ -41,7 +41,7 @@ export default function Navbar() {
 
   const authArea = loading ? null : isAuthenticated ? (
     <div className="flex items-center gap-3">
-      <span className="text-sm text-white/90">Hi, {user.name.split(" ")[0]}</span>
+      <span className="text-sm text-white/90 xl:inline lg:hidden">Hi, {user.name.split(" ")[0]}</span>
       <button
         onClick={handleLogout}
         className="rounded-lg bg-white/15 px-3 py-1.5 text-sm font-medium text-white hover:bg-white/25"
@@ -72,12 +72,12 @@ export default function Navbar() {
         </Link>
 
         {/* Desktop */}
-        <nav className="hidden items-center gap-1 md:flex">{links}</nav>
-        <div className="hidden md:block">{authArea}</div>
+        <nav className="hidden items-center gap-1 lg:flex">{links}</nav>
+        <div className="hidden lg:block">{authArea}</div>
 
         {/* Mobile menu button */}
         <button
-          className="rounded-lg p-2 text-white md:hidden"
+          className="rounded-lg p-2 text-white lg:hidden"
           onClick={() => setOpen(!open)}
           aria-label="Toggle menu"
           aria-expanded={open}
@@ -90,7 +90,7 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {open && (
-        <div className="space-y-3 border-t border-white/10 px-4 pb-4 pt-3 md:hidden">
+        <div className="space-y-3 border-t border-white/10 px-4 pb-4 pt-3 lg:hidden">
           <nav className="flex flex-col gap-1">{links}</nav>
           {authArea}
         </div>

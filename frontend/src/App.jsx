@@ -11,6 +11,7 @@ import MyUploads from "./pages/MyUploads";
 import Dashboard from "./pages/admin/Dashboard";
 import Categories from "./pages/admin/Categories";
 import Favorites from "./pages/Favorites";
+import MyLibrary from "./pages/MyLibrary";
 import Reader from "./pages/Reader";
 
 // Navbar on top, page content in the middle, footer at the bottom
@@ -54,6 +55,7 @@ export default function App() {
         <Route path="/my-uploads" element={<ProtectedRoute><MyUploads /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute adminOnly><Dashboard /></ProtectedRoute>} />
         <Route path="/admin/categories" element={<ProtectedRoute adminOnly><Categories /></ProtectedRoute>} />
+        <Route path="/library" element={<ProtectedRoute><MyLibrary /></ProtectedRoute>} />        
         <Route path="/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
         <Route path="/read/:id" element={<ProtectedRoute><Reader /></ProtectedRoute>} />
       </Route>
