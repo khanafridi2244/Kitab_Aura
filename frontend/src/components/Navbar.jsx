@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import ThemeToggle from "./ThemeToggle";
 
 const linkClass = ({ isActive }) =>
   `px-3 py-2 rounded-lg text-sm font-medium transition ${
@@ -77,7 +78,10 @@ export default function Navbar() {
 
         {/* Desktop */}
         <nav className="hidden items-center gap-1 xl:flex">{links}</nav>
-        <div className="hidden xl:block">{authArea}</div>
+        <div className="hidden items-center gap-2 xl:flex">
+          <ThemeToggle />
+          {authArea}
+        </div>
 
         {/* Mobile menu button */}
         <button
@@ -96,7 +100,10 @@ export default function Navbar() {
       {open && (
         <div className="space-y-3 border-t border-white/10 px-4 pb-4 pt-3 xl:hidden">
           <nav className="flex flex-col gap-1">{links}</nav>
-          {authArea}
+         <div className="flex items-center justify-between gap-3">
+            {authArea}
+            <ThemeToggle />
+          </div>
         </div>
       )}
     </header>
