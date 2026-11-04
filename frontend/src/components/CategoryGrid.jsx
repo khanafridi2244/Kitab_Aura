@@ -3,19 +3,19 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api, { getErrorMessage } from "../api/axios";
 
-const MAX_SHOWN = 12;
+
 
 const categoryImages = {
-  "art-culture": "/images/categories/art-culture.webp",
-  "business-management": "/images/categories/business-management.webp",
-  "children-books": "/images/categories/children-books.webp",
-  "computer-science": "/images/categories/computer-science.webp",
-  dictionaries: "/images/categories/dictionaries.webp",
-  "dramas-and-plays": "/images/categories/dramas-and-plays.webp",
-  economics: "/images/categories/economics.webp",
-  education: "/images/categories/education.webp",
-  biography: "/images/categories/biography.webp",
-  novel: "/images/categories/novel.webp",
+  "art-culture": "/images/categories//Art & Culture.jpg",
+  "business-management": "/images/categories/Business & Management.jpg",
+  "children-books": "/images/categories/Childrens Books.jpg",
+  "computer-science": "/images/categories/cs.png",
+  dictionaries: "/images/categories/Dictionaries.jpg",
+  "dramas-and-plays": "/images/categories/drama.png",
+  economics: "/images/categories/economics.jpg",
+  education: "/images/categories/education.jpg",
+  biography: "/images/categories/history.webp",
+  novel: "/images/categories/fiction.webp",
   poetry: "/images/categories/poetry.webp",
 };
 
@@ -61,7 +61,7 @@ export default function CategoryGrid() {
 
   const shown = [...result.categories]
     .sort((a, b) => (b.bookCount || 0) - (a.bookCount || 0))
-    .slice(0, MAX_SHOWN);
+    .slice(0, 10);
 
   if (!loading && !result.error && shown.length === 0) {
     return null;
