@@ -17,6 +17,8 @@ import Popular from "./pages/Popular";
 import Challenges from "./pages/Challenges";
 import Dashboard from "./pages/admin/Dashboard";
 import Categories from "./pages/admin/Categories";
+import RequestBook from "./pages/RequestBook";
+import Requests from "./pages/admin/Requests";
 
 // Navbar on top, page content in the middle, footer at the bottom
 function Layout() {
@@ -27,7 +29,14 @@ function Layout() {
         <Outlet />
       </main>
       <footer className="bg-ink py-4 text-center text-sm text-white/80">
-        KitabAura - A multilingual digital library
+        <p>KitabAura - A multilingual digital library</p>
+        <p className="mt-1">
+          <Link to="/browse" className="hover:underline">Browse</Link>
+          {" · "}
+          <Link to="/popular" className="hover:underline">Popular</Link>
+          {" · "}
+          <Link to="/requests" className="hover:underline">Request a book</Link>
+        </p>
       </footer>
     </div>
   );
@@ -59,6 +68,8 @@ export default function App() {
         <Route path="/my-uploads" element={<ProtectedRoute><MyUploads /></ProtectedRoute>} />
         <Route path="/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
         <Route path="/challenges" element={<ProtectedRoute><Challenges /></ProtectedRoute>} />        
+        <Route path="/requests" element={<ProtectedRoute><RequestBook /></ProtectedRoute>} />
+        <Route path="/admin/requests" element={<ProtectedRoute adminOnly><Requests /></ProtectedRoute>} />       
         <Route path="/read/:id" element={<ProtectedRoute><Reader /></ProtectedRoute>} />
         <Route path="/library" element={<ProtectedRoute><MyLibrary /></ProtectedRoute>} />
         <Route path="/welcome" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />        

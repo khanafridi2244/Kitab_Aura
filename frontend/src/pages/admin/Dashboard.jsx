@@ -54,12 +54,18 @@ export default function Dashboard() {
     <div className="mx-auto max-w-5xl px-4 py-8">
       <h1 className="text-2xl font-bold text-primary">Admin dashboard</h1>
       <p className="mt-1 text-sm text-muted">Review uploaded books before they go live in the library.</p>
-      <div className="mt-4 flex gap-3">
+      <div className="mt-4 flex flex-wrap gap-3">
         <Link
           to="/admin/categories"
           className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-primary hover:bg-soft"
         >
           Manage categories
+        </Link>
+        <Link
+          to="/admin/requests"
+          className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-primary hover:bg-soft"
+        >
+          Book requests
         </Link>
       </div>
       <StatsPanel refreshKey={reviewCount} />

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import api, { getErrorMessage } from "../api/axios";
 import BookCard from "../components/BookCard";
@@ -149,6 +149,9 @@ export default function Browse() {
           <div className="rounded-xl bg-soft px-4 py-16 text-center">
             <p className="text-lg font-semibold text-primary">No books found</p>
             <p className="mt-1 text-sm text-muted">Try a different search or clear the filters.</p>
+            <Link to="/requests" className="mt-4 inline-block font-semibold text-primary underline">
+              Cannot find your book? Request it
+            </Link>          
           </div>
         ) : (
           <>
