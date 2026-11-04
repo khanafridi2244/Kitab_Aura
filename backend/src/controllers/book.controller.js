@@ -5,6 +5,8 @@ import asyncHandler from "../utils/asyncHandler.js";
 import { uploadBuffer, deleteFile } from "../utils/cloudinaryUpload.js";
 import Review from "../models/Review.js";
 import ReadingProgress from "../models/ReadingProgress.js";
+import sendEmail from "../utils/sendEmail.js";
+import { bookStatusEmail } from "../utils/emailTemplates.js";
 
 const PUBLIC_FIELDS = "-pdfUrl -pdfPublicId -coverPublicId -rejectNote";
 const CATEGORY_FIELDS = "name nameUrdu namePashto slug";
@@ -123,17 +125,32 @@ export const getPendingBooks = asyncHandler(async (req, res) => {
 });
 
 // PATCH /api/books/:id/status (admin: approve or reject)
+// PATCH /api/books/:id/status (admin: approve or reject)
 export const updateBookStatus = asyncHandler(async (req, res) => {
-  const book = await Book.findById(req.params.id);
+  const book = await Book.findById(req.params.id).populate("uploadedBy", "name email");
   if (!book) throw new ApiError(404, "Book not found");
 
+  const previous = book.status;
   book.status = req.body.status;
   book.rejectNote = req.body.status === "rejected" ? req.body.rejectNote : "";
   await book.save();
 
+  // Tell the uploader. The response does not wait for the email
+  if (previous !== book.status && book.uploadedBy?.email) {
+    void sendEmail({
+      to: book.uploadedBy.email,
+      ...bookStatusEmail({
+        name: book.uploadedBy.name,
+        title: book.title,
+        status: book.status,
+        note: book.rejectNote,
+        bookId: book._id,
+      }),
+    });
+  }
+
   res.json({ success: true, message: `Book ${book.status}`, book });
 });
-
 // DELETE /api/books/:id (admin or the uploader)
 export const deleteBook = asyncHandler(async (req, res) => {
   const book = await Book.findById(req.params.id);
