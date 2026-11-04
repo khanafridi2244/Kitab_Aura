@@ -1,19 +1,15 @@
 import Book, { LANGUAGES } from "../models/Book.js";
 import ApiError from "../utils/ApiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import { tzOffsetMs } from "../utils/dates.js";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-const ROW_SIZE = 6;
+const ROW_SIZE = 10;
+const COLLECTION_LANGUAGES = ["pashto", "urdu", "english"];
+const COLLECTION_SIZE = 4;
 const LIST_FIELDS = "title author language coverUrl avgRating ratingsCount downloads";
 const PICK_FIELDS = `${LIST_FIELDS} description pages`;
 const CATEGORY_FIELDS = "name nameUrdu namePashto slug";
-
-// Hours ahead of UTC that decide when "a new day" starts (Pakistan = 5). Change it with DAILY_TZ_OFFSET_HOURS in .env
-const dayOffsetMs = () => {
-  const raw = process.env.DAILY_TZ_OFFSET_HOURS;
-  const hours = raw !== undefined && raw !== "" && Number.isFinite(Number(raw)) ? Number(raw) : 5;
-  return hours * 60 * 60 * 1000;
-};
 
 // Picks one book for the day. The same day always gives the same book, so no extra storage is needed
 const pick = async (base, dayNumber, startOfToday, excludeId) => {
@@ -39,7 +35,7 @@ const pick = async (base, dayNumber, startOfToday, excludeId) => {
 
 // GET /api/home (public)
 export const getHome = asyncHandler(async (req, res) => {
-  const offset = dayOffsetMs();
+  const offset = tzOffsetMs();
   // ?shiftDays=1 previews tomorrow's picks while testing (ignored in production)
   const shift = process.env.NODE_ENV === "production" ? 0 : parseInt(req.query.shiftDays) || 0;
   const dayNumber = Math.floor((Date.now() + offset) / DAY_MS) + shift;
@@ -53,16 +49,25 @@ export const getHome = asyncHandler(async (req, res) => {
     (await pick({ language }, dayNumber, startOfToday, exclude)) ||
     (await pick({ language }, dayNumber, startOfToday));
 
-  const [pashto, urdu, trending, newest] = await Promise.all([
+  const [pashto, urdu, trending, newest, ...collections] = await Promise.all([
     forLanguage("pashto"),
     forLanguage("urdu"),
     Book.find({ status: "approved" }).sort("-downloads -avgRating -createdAt").limit(ROW_SIZE).select(LIST_FIELDS),
     Book.find({ status: "approved" }).sort("-createdAt").limit(ROW_SIZE).select(LIST_FIELDS),
+    ...COLLECTION_LANGUAGES.map((language) =>
+      Book.find({ status: "approved", language })
+        .sort("-downloads -avgRating -createdAt")
+        .limit(COLLECTION_SIZE)
+        .select(LIST_FIELDS)
+    ),
   ]);
 
-  res.json({ success: true, daily: { bookOfTheDay, pashto, urdu }, trending, newest });
+  const languages = Object.fromEntries(COLLECTION_LANGUAGES.map((l, i) => [l, collections[i]]));
+
+  res.json({ success: true, daily: { bookOfTheDay, pashto, urdu }, trending, newest, languages });
 });
-  const POPULAR_SORTS = {
+
+const POPULAR_SORTS = {
   downloads: { sort: "-downloads -avgRating", extra: {} },
   rating: { sort: "-avgRating -ratingsCount", extra: { ratingsCount: { $gte: 1 } } },
   reviews: { sort: "-ratingsCount -avgRating", extra: { ratingsCount: { $gte: 1 } } },
@@ -87,5 +92,3 @@ export const getPopular = asyncHandler(async (req, res) => {
 
   res.json({ success: true, by, count: books.length, books });
 });
-
-

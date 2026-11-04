@@ -4,8 +4,21 @@ import asyncHandler from "../utils/asyncHandler.js";
 import Book from "../models/Book.js";
 
 // GET /api/categories (public)
+// GET /api/categories (public)  ?counts=true adds the number of published books in each category
 export const getCategories = asyncHandler(async (req, res) => {
-  const categories = await Category.find().sort("name");
+  const categories = await Category.find().sort("name").lean();
+
+  if (req.query.counts === "true") {
+    const agg = await Book.aggregate([
+      { $match: { status: "approved" } },
+      { $group: { _id: "$category", count: { $sum: 1 } } },
+    ]);
+    const byId = new Map(agg.map((a) => [String(a._id), a.count]));
+    categories.forEach((c) => {
+      c.bookCount = byId.get(String(c._id)) || 0;
+    });
+  }
+
   res.json({ success: true, count: categories.length, categories });
 });
 
