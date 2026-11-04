@@ -8,6 +8,9 @@ import RecommendedRow from "../components/RecommendedRow";
 import DailyPicks from "../components/DailyPicks";
 import BookCarousel from "../components/BookCarousel";
 import LanguageCollections from "../components/LanguageCollections";
+import AboutSection from "../components/AboutSection";
+import FaqSection from "../components/FaqSection";
+import NewsletterSection from "../components/NewsletterSection";
 
 export default function Home() {
   const [reloadKey, setReloadKey] = useState(0);
@@ -40,7 +43,7 @@ export default function Home() {
         <RecommendedRow />
       </div>
 
-      <div className="mx-auto max-w-6xl px-4 pb-12" aria-live="polite">
+      <div className="mx-auto max-w-6xl px-4 pb-4" aria-live="polite">
         {loading ? (
           <div className="space-y-4 py-10">
             <div className="h-56 animate-pulse rounded-2xl bg-soft" />
@@ -76,6 +79,13 @@ export default function Home() {
             <LanguageCollections languages={data.languages} />
           </>
         )}
+      </div>
+
+      <AboutSection />
+
+      <div className="mx-auto max-w-6xl px-4">
+        <FaqSection />
+        <NewsletterSection />
       </div>
     </>
   );
