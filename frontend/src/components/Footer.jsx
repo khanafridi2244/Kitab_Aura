@@ -53,6 +53,7 @@ export default function Footer() {
         </Column>
 
         <Column title="Community">
+          <li><Link to="/blog" className={linkClass}>Blog</Link></li>
           <li><Link to="/requests" className={linkClass}>Request a book</Link></li>
           <li><Link to="/upload" className={linkClass}>Share a book</Link></li>
           {SOCIALS.map((s) => (

@@ -67,6 +67,12 @@ export default function Dashboard() {
         >
           Book requests
         </Link>
+        <Link
+          to="/admin/blog"
+          className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-primary hover:bg-soft"
+        >
+          Manage blog
+        </Link>
       </div>
       <StatsPanel refreshKey={reviewCount} />
       <h2 className="mt-8 flex items-center gap-2 text-lg font-bold text-ink">

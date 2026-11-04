@@ -12,6 +12,7 @@ const NAV = [
   { label: "Categories", to: "/#categories", isActive: (p, h) => p === "/" && h === "#categories" },
   { label: "About", to: "/#about", isActive: (p, h) => p === "/" && h === "#about" },
   { label: "FAQ", to: "/#faq", isActive: (p, h) => p === "/" && h === "#faq" },
+  { label: "Blog", to: "/blog", isActive: (p) => p.startsWith("/blog") },
 ];
 
 const USER_LINKS = [

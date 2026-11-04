@@ -18,10 +18,14 @@ import Profile from "./pages/Profile";
 import Onboarding from "./pages/Onboarding";
 import Challenges from "./pages/Challenges";
 import RequestBook from "./pages/RequestBook";
+import Unsubscribe from "./pages/Unsubscribe";
+import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
 import Dashboard from "./pages/admin/Dashboard";
 import Categories from "./pages/admin/Categories";
 import Requests from "./pages/admin/Requests";
-import Unsubscribe from "./pages/Unsubscribe";
+import BlogAdmin from "./pages/admin/BlogAdmin";
+import BlogEditor from "./pages/admin/BlogEditor";
 
 // Navbar on top, page content in the middle, footer at the bottom
 function Layout() {
@@ -71,6 +75,9 @@ export default function App() {
         <Route path="/browse" element={<Browse />} />
         <Route path="/popular" element={<Popular />} />
         <Route path="/books/:id" element={<BookDetail />} />
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/blog/:slug" element={<BlogPost />} />
+        <Route path="/unsubscribe/:token" element={<Unsubscribe />} />
         <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
         <Route path="/my-uploads" element={<ProtectedRoute><MyUploads /></ProtectedRoute>} />
         <Route path="/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
@@ -83,7 +90,9 @@ export default function App() {
         <Route path="/admin" element={<ProtectedRoute adminOnly><Dashboard /></ProtectedRoute>} />
         <Route path="/admin/categories" element={<ProtectedRoute adminOnly><Categories /></ProtectedRoute>} />
         <Route path="/admin/requests" element={<ProtectedRoute adminOnly><Requests /></ProtectedRoute>} />
-        <Route path="/unsubscribe/:token" element={<Unsubscribe />} />        
+        <Route path="/admin/blog" element={<ProtectedRoute adminOnly><BlogAdmin /></ProtectedRoute>} />
+        <Route path="/admin/blog/new" element={<ProtectedRoute adminOnly><BlogEditor /></ProtectedRoute>} />
+        <Route path="/admin/blog/:id/edit" element={<ProtectedRoute adminOnly><BlogEditor /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
