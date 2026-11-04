@@ -1,10 +1,13 @@
 import { Routes, Route, Outlet, Link } from "react-router-dom";
 import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
+import ScrollManager from "./components/ScrollManager";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Browse from "./pages/Browse";
+import Popular from "./pages/Popular";
 import BookDetail from "./pages/BookDetail";
 import Upload from "./pages/Upload";
 import MyUploads from "./pages/MyUploads";
@@ -13,31 +16,34 @@ import Reader from "./pages/Reader";
 import MyLibrary from "./pages/MyLibrary";
 import Profile from "./pages/Profile";
 import Onboarding from "./pages/Onboarding";
-import Popular from "./pages/Popular";
 import Challenges from "./pages/Challenges";
+import RequestBook from "./pages/RequestBook";
 import Dashboard from "./pages/admin/Dashboard";
 import Categories from "./pages/admin/Categories";
-import RequestBook from "./pages/RequestBook";
 import Requests from "./pages/admin/Requests";
 
 // Navbar on top, page content in the middle, footer at the bottom
 function Layout() {
+  const skipToContent = (e) => {
+    e.preventDefault();
+    document.getElementById("main")?.focus();
+  };
+
   return (
     <div className="flex min-h-screen flex-col">
+      <a
+        href="#main"
+        onClick={skipToContent}
+        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[60] focus:rounded-lg focus:bg-accent focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-on-accent"
+      >
+        Skip to content
+      </a>
+      <ScrollManager />
       <Navbar />
-      <main className="flex-1">
+      <main id="main" tabIndex={-1} className="flex-1 outline-none">
         <Outlet />
       </main>
-      <footer className="bg-ink py-4 text-center text-sm text-white/80">
-        <p>KitabAura - A multilingual digital library</p>
-        <p className="mt-1">
-          <Link to="/browse" className="hover:underline">Browse</Link>
-          {" · "}
-          <Link to="/popular" className="hover:underline">Popular</Link>
-          {" · "}
-          <Link to="/requests" className="hover:underline">Request a book</Link>
-        </p>
-      </footer>
+      <Footer />
     </div>
   );
 }
@@ -67,15 +73,15 @@ export default function App() {
         <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
         <Route path="/my-uploads" element={<ProtectedRoute><MyUploads /></ProtectedRoute>} />
         <Route path="/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
-        <Route path="/challenges" element={<ProtectedRoute><Challenges /></ProtectedRoute>} />        
-        <Route path="/requests" element={<ProtectedRoute><RequestBook /></ProtectedRoute>} />
-        <Route path="/admin/requests" element={<ProtectedRoute adminOnly><Requests /></ProtectedRoute>} />       
         <Route path="/read/:id" element={<ProtectedRoute><Reader /></ProtectedRoute>} />
         <Route path="/library" element={<ProtectedRoute><MyLibrary /></ProtectedRoute>} />
-        <Route path="/welcome" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />        
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/welcome" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+        <Route path="/challenges" element={<ProtectedRoute><Challenges /></ProtectedRoute>} />
+        <Route path="/requests" element={<ProtectedRoute><RequestBook /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute adminOnly><Dashboard /></ProtectedRoute>} />
         <Route path="/admin/categories" element={<ProtectedRoute adminOnly><Categories /></ProtectedRoute>} />
+        <Route path="/admin/requests" element={<ProtectedRoute adminOnly><Requests /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
