@@ -17,6 +17,7 @@ import activityRoutes from "./routes/activity.routes.js";
 import challengeRoutes from "./routes/challenge.routes.js";
 import requestRoutes from "./routes/request.routes.js";
 import newsletterRoutes from "./routes/newsletter.routes.js";
+import blogRoutes from "./routes/blog.routes.js";
 import { notFound, errorHandler } from "./middleware/error.js";
 
 const app = express();
@@ -50,6 +51,7 @@ app.use("/api/activity", activityRoutes);
 app.use("/api/challenges", challengeRoutes);
 app.use("/api/requests", requestRoutes);
 app.use("/api/newsletter", newsletterRoutes);
+app.use("/api/blog", blogRoutes);
 
 // These two must stay last
 app.use(notFound);

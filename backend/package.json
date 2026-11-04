@@ -9,7 +9,8 @@
     "dev": "nodemon src/server.js",
     "create-admin": "node scripts/createAdmin.js",
     "seed:categories": "node scripts/seedCategories.js",
-    "test:email": "node scripts/testEmail.js"
+    "test:email": "node scripts/testEmail.js",
+    "seed:blog": "node scripts/seedBlog.js"
   },
   "keywords": [
     "mern",
