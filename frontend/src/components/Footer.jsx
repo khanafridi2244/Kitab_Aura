@@ -38,7 +38,7 @@ export default function Footer() {
           <li><Link to="/" className={linkClass}>Home</Link></li>
           <li><Link to="/browse" className={linkClass}>Explore Books</Link></li>
           <li><Link to="/popular" className={linkClass}>Popular Books</Link></li>
-          <li><Link to="/#categories" className={linkClass}>Categories</Link></li>
+          <li><Link to="/categories" className={linkClass}>Categories</Link></li>
           <li><Link to="/browse?language=pashto" className={linkClass}>Pashto books</Link></li>
           <li><Link to="/browse?language=urdu" className={linkClass}>Urdu books</Link></li>
           <li><Link to="/browse?language=english" className={linkClass}>English books</Link></li>

@@ -9,8 +9,7 @@ const NAV = [
   { label: "Home", to: "/", isActive: (p, h) => p === "/" && !h },
   { label: "Explore Books", to: "/browse", isActive: (p) => p.startsWith("/browse") || p.startsWith("/books") },
   { label: "Popular", to: "/popular", isActive: (p) => p.startsWith("/popular") },
-  { label: "Categories", to: "/#categories", isActive: (p, h) => p === "/" && h === "#categories" },
-  { label: "About", to: "/#about", isActive: (p, h) => p === "/" && h === "#about" },
+  { label: "Categories", to: "/categories", isActive: (p) => p.startsWith("/categories") },  { label: "About", to: "/#about", isActive: (p, h) => p === "/" && h === "#about" },
   { label: "FAQ", to: "/#faq", isActive: (p, h) => p === "/" && h === "#faq" },
   { label: "Blog", to: "/blog", isActive: (p) => p.startsWith("/blog") },
 ];

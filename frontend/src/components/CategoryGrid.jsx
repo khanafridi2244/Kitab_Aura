@@ -59,9 +59,12 @@ export default function CategoryGrid() {
     };
   }, [reloadKey]);
 
-  const shown = [...result.categories]
-    .sort((a, b) => (b.bookCount || 0) - (a.bookCount || 0))
-    .slice(0, 10);
+const hiddenCategories = ["children-books", "dramas-and-plays"];
+
+const shown = [...result.categories]
+  .filter((category) => !hiddenCategories.includes(category.slug))
+  .sort((a, b) => (b.bookCount || 0) - (a.bookCount || 0))
+  .slice(0, 10);
 
   if (!loading && !result.error && shown.length === 0) {
     return null;

@@ -31,7 +31,7 @@ export default function Hero() {
               Explore Books
             </Link>
             <Link
-              to="/#categories"
+              to="/categories"
               className="rounded-full bg-[#f3e6c8] px-6 py-2.5 text-sm font-semibold text-[#14201a] hover:bg-[#ead9b0]"
             >
               Browse Categories
