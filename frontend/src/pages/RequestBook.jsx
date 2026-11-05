@@ -72,7 +72,7 @@ export default function RequestBook() {
   const { loading, requests, error } = state;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8">
+    <div className="page-centered mx-auto max-w-3xl px-4 py-8">
       <h1 className="text-2xl font-bold text-primary">Request a book</h1>
       <p className="mt-1 text-sm text-muted">
         Cannot find a book in the library? Tell us what you are looking for and we will try to add it. Please

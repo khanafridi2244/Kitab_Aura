@@ -245,3 +245,27 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ---------- One page width for the whole site ----------
+   The navbar, footer and every page share the same left and right edges.
+   To use a narrower layout everywhere, change this one number (for example 72rem). */
+:root {
+  --page-width: 80rem;
+}
+
+/* max-w-6xl (used by the pages) and max-w-7xl (navbar and footer) now both follow the page width */
+@theme {
+  --container-6xl: var(--page-width);
+  --container-7xl: var(--page-width);
+}
+
+/* Lists, dashboards and detail pages use the full page width */
+#main > .mx-auto:is(.max-w-4xl, .max-w-5xl) {
+  max-width: var(--page-width);
+}
+
+/* Forms and articles keep a readable width, but start at the logo's left edge instead of floating in the middle */
+#main > .mx-auto:is(.max-w-2xl, .max-w-3xl):not(.page-centered) {
+  margin-left: max(0px, calc((100% - var(--page-width)) / 2));
+  margin-right: auto;
+}

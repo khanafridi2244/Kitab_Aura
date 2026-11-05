@@ -143,7 +143,7 @@ export default function Upload() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8">
+    <div className="page-centered mx-auto max-w-2xl px-4 py-8">
       <h1 className="text-2xl font-bold text-primary">Upload a book</h1>
       <p className="mt-1 text-sm text-muted">
         {isAdmin
