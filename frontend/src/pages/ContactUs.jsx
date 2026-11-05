@@ -62,18 +62,7 @@ const INFO_CARDS = [
         accent: "text-amber-700",
         bg: "bg-accent/15",
     },
-    {
-        icon: (
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="h-6 w-6">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641l-.468 1.87 2.328-.776c.489-.163.992-.19 1.486-.103A9.22 9.22 0 0012 20.25z" />
-            </svg>
-        ),
-        title: "Live Chat Soon",
-        value: "Coming very soon!",
-        href: null,
-        accent: "text-emerald-700",
-        bg: "bg-emerald-50",
-    },
+
 ];
 
 const TOPICS = [
@@ -101,9 +90,9 @@ export default function ContactUs() {
     };
 
     return (
-        <div className="min-h-[calc(100vh-4rem)]">
+        <div className="min-h-[calc(100vh-4rem)] pt-12">
             {/* ── Hero banner ── */}
-            <div className="relative overflow-hidden bg-[#0b2e23] py-20 text-white">
+            <div className="relative overflow-hidden bg-[#0b2e23] py-16 text-white">
                 {/* Decorative blobs */}
                 <div className="pointer-events-none absolute -top-20 -left-20 h-72 w-72 rounded-full bg-accent/10 blur-3xl" />
                 <div className="pointer-events-none absolute -bottom-16 -right-16 h-64 w-64 rounded-full bg-primary/30 blur-3xl" />
@@ -112,10 +101,10 @@ export default function ContactUs() {
                     <span className="inline-block rounded-full border border-accent/40 bg-accent/10 px-5 py-1.5 text-xs font-bold uppercase tracking-widest text-accent">
                         Get in touch
                     </span>
-                    <h1 className="mt-5 font-display text-4xl font-bold sm:text-5xl lg:text-6xl">
+                    <h1 className="mt-5 font-display text-3xl font-bold sm:text-4xl">
                         We'd love to <span className="text-accent">hear</span> from you
                     </h1>
-                    <p className="mx-auto mt-4 max-w-xl text-base text-white/75 sm:text-lg">
+                    <p className="mx-auto mt-4 max-w-xl text-sm text-white/75 sm:text-base">
                         Questions, feedback, book requests — whatever's on your mind, drop us a message and we'll get back to you promptly.
                     </p>
                 </div>
@@ -123,7 +112,7 @@ export default function ContactUs() {
 
             {/* ── Info cards strip ── */}
             <div className="bg-soft">
-                <div className="mx-auto grid max-w-4xl grid-cols-1 gap-px sm:grid-cols-3">
+                <div className="mx-auto grid max-w-3xl grid-cols-1 gap-px sm:grid-cols-2">
                     {INFO_CARDS.map((c) => (
                         <div key={c.title} className="bg-white p-6 text-center sm:p-8">
                             <div className={`mx-auto flex h-12 w-12 items-center justify-center rounded-2xl ${c.bg} ${c.accent}`}>
