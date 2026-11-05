@@ -11,6 +11,7 @@ import LanguageCollections from "../components/LanguageCollections";
 import AboutSection from "../components/AboutSection";
 import FaqSection from "../components/FaqSection";
 import NewsletterSection from "../components/NewsletterSection";
+import LatestBlogs from "../components/LatestBlogs";
 
 export default function Home() {
   const [reloadKey, setReloadKey] = useState(0);
@@ -86,6 +87,7 @@ export default function Home() {
       <div className="mx-auto max-w-6xl px-4">
         <FaqSection />
         <NewsletterSection />
+        <LatestBlogs />
       </div>
     </>
   );
