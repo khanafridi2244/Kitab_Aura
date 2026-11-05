@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api, { getErrorMessage } from "../api/axios";
 
 const LANGUAGES = ["pashto", "urdu", "english", "arabic", "persian"];
@@ -23,11 +23,13 @@ const inputClass =
 const emptyForm = { title: "", author: "", language: "", note: "" };
 
 export default function RequestBook() {
+  const navigate = useNavigate();
   const [state, setState] = useState({ loading: true, requests: [], error: "" });
   const [communityRequests, setCommunityRequests] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [submitting, setSubmitting] = useState(false);
   const [busyId, setBusyId] = useState(null);
+  const [respondingId, setRespondingId] = useState(null);
   const [notice, setNotice] = useState({ type: "", text: "" });
 
   useEffect(() => {
@@ -62,6 +64,41 @@ export default function RequestBook() {
       setNotice({ type: "error", text: getErrorMessage(err) });
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleUserResponse = async (request, response) => {
+    setNotice({ type: "", text: "" });
+    setRespondingId(request._id);
+    try {
+      const { data } = await api.patch(`/requests/${request._id}/respond`, { response });
+      setState((s) => ({
+        ...s,
+        requests: s.requests.map((r) => (r._id === request._id ? { ...r, ...data.request } : r)),
+      }));
+
+      if (response === "accepted") {
+        setNotice({
+          type: "success",
+          text: `You accepted to share "${request.title}"! Opening the upload page...`,
+        });
+        setTimeout(() => {
+          navigate(
+            `/upload?title=${encodeURIComponent(request.title)}&author=${encodeURIComponent(
+              request.author || ""
+            )}&language=${encodeURIComponent(request.language || "")}`
+          );
+        }, 1000);
+      } else {
+        setNotice({
+          type: "success",
+          text: `We have notified the admin that you do not have a copy of "${request.title}".`,
+        });
+      }
+    } catch (err) {
+      setNotice({ type: "error", text: getErrorMessage(err) });
+    } finally {
+      setRespondingId(null);
     }
   };
 
@@ -212,68 +249,147 @@ export default function RequestBook() {
           </p>
         ) : (
           <ul className="space-y-3">
-            {requests.map((r) => (
-              <li key={r._id} className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="font-semibold text-ink">{r.title}</h3>
-                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_STYLES[r.status] || "bg-gray-100 text-gray-800"}`}>
-                    {STATUS_LABEL[r.status] || r.status}
-                  </span>
-                </div>
-                <p className="text-sm text-muted">
-                  {r.author ? `${r.author} · ` : ""}
-                  <span className="capitalize">{r.language}</span> · Requested {new Date(r.createdAt).toLocaleDateString()}
-                </p>
-                {r.note && <p className="mt-2 text-sm text-ink">{r.note}</p>}
+            {requests.map((r) => {
+              const isSeeking = r.status === "seeking_copy";
+              const userRes = r.userResponse || "pending";
+              const isResponding = respondingId === r._id;
 
-                {/* Seeking copy callout */}
-                {r.status === "seeking_copy" && (
-                  <div className="mt-3 rounded-lg border border-blue-200 bg-blue-50/80 p-3 text-sm text-blue-900">
-                    <p className="font-semibold text-blue-900">Admin requested copy from you & the community:</p>
-                    <p className="mt-1 text-xs text-blue-800">
-                      {r.adminNote || "The admin checked our archives and does not currently have this book. If you or someone you know has a PDF or copy, please upload it to the library!"}
-                    </p>
-                    <div className="mt-2.5">
-                      <Link
-                        to={`/upload?title=${encodeURIComponent(r.title)}&author=${encodeURIComponent(r.author || "")}&language=${encodeURIComponent(r.language || "")}`}
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-primary-dark"
-                      >
-                        I have this book &mdash; Upload it now &rarr;
-                      </Link>
-                    </div>
+              return (
+                <li key={r._id} className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="font-semibold text-ink">{r.title}</h3>
+                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_STYLES[r.status] || "bg-gray-100 text-gray-800"}`}>
+                      {STATUS_LABEL[r.status] || r.status}
+                    </span>
                   </div>
-                )}
-
-                {r.status !== "open" && r.status !== "seeking_copy" && r.adminNote && (
-                  <p
-                    className={`mt-2 rounded-lg px-3 py-1.5 text-sm ${
-                      r.status === "fulfilled" ? "bg-green-50 text-green-800" : "bg-red-50 text-red-700"
-                    }`}
-                  >
-                    <span className="font-semibold">Reply:</span> {r.adminNote}
+                  <p className="text-sm text-muted">
+                    {r.author ? `${r.author} · ` : ""}
+                    <span className="capitalize">{r.language}</span> · Requested {new Date(r.createdAt).toLocaleDateString()}
                   </p>
-                )}
+                  {r.note && <p className="mt-2 text-sm text-ink">{r.note}</p>}
 
-                <div className="mt-3 flex gap-4 text-sm font-medium">
-                  {r.status === "fulfilled" && (
-                    <Link to={`/browse?q=${encodeURIComponent(r.title)}`} className="text-primary hover:underline">
-                      Find it in the library
-                    </Link>
+                  {/* ── Interactive Accept / Reject Box when Admin seeks copy ── */}
+                  {isSeeking && (
+                    <div className="mt-3">
+                      {userRes === "pending" && (
+                        <div className="rounded-xl border border-blue-200 bg-blue-50/80 p-4 text-sm text-blue-950">
+                          <div className="flex items-start gap-2.5">
+                            <span className="text-xl shrink-0" aria-hidden="true">📖</span>
+                            <div className="flex-1">
+                              <p className="font-bold text-blue-950">The admin is requesting this book from you:</p>
+                              <p className="mt-1 text-xs text-blue-900 leading-relaxed">
+                                {r.adminNote || "The admin checked our archives and doesn't currently have this book. Do you have a copy to share?"}
+                              </p>
+                              <p className="mt-2 text-xs font-semibold text-blue-900">
+                                Do you have this book available?
+                              </p>
+
+                              <div className="mt-3 flex flex-wrap items-center gap-2.5">
+                                <button
+                                  type="button"
+                                  onClick={() => handleUserResponse(r, "accepted")}
+                                  disabled={isResponding}
+                                  className="inline-flex items-center gap-1.5 rounded-lg bg-green-700 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-green-800 disabled:opacity-50"
+                                >
+                                  ✓ Yes, I have it &mdash; Accept &amp; Upload
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleUserResponse(r, "rejected")}
+                                  disabled={isResponding}
+                                  className="inline-flex items-center gap-1.5 rounded-lg border border-red-300 bg-white px-4 py-2 text-xs font-semibold text-red-700 shadow-sm transition hover:bg-red-50 disabled:opacity-50"
+                                >
+                                  ✕ No, I don't have it &mdash; Reject
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {userRes === "accepted" && (
+                        <div className="rounded-xl border border-green-200 bg-green-50/80 p-3.5 text-sm text-green-950">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <p className="font-semibold text-green-900">
+                              ✓ You accepted to provide this book
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => handleUserResponse(r, "rejected")}
+                              disabled={isResponding}
+                              className="text-xs text-muted hover:text-red-700 underline"
+                            >
+                              Change to: I don't have it
+                            </button>
+                          </div>
+                          <p className="mt-1 text-xs text-green-800">
+                            Thank you for sharing this book with fellow readers!
+                          </p>
+                          <div className="mt-2.5">
+                            <Link
+                              to={`/upload?title=${encodeURIComponent(r.title)}&author=${encodeURIComponent(r.author || "")}&language=${encodeURIComponent(r.language || "")}`}
+                              className="inline-flex items-center gap-1.5 rounded-lg bg-green-700 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-green-800"
+                            >
+                              Upload book now &rarr;
+                            </Link>
+                          </div>
+                        </div>
+                      )}
+
+                      {userRes === "rejected" && (
+                        <div className="rounded-xl border border-gray-200 bg-soft/70 p-3.5 text-sm text-ink">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <p className="font-semibold text-muted">
+                              ✕ You noted that you do not have this book available
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => handleUserResponse(r, "accepted")}
+                              disabled={isResponding}
+                              className="text-xs font-semibold text-primary underline"
+                            >
+                              Change to: I have it &amp; will upload
+                            </button>
+                          </div>
+                          <p className="mt-1 text-xs text-muted">
+                            The admin has been notified. This title will remain on the Community Wanted board so other members can share it.
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   )}
-                  <button
-                    onClick={() => handleDelete(r)}
-                    disabled={busyId === r._id}
-                    className="text-red-600 hover:underline disabled:opacity-50"
-                  >
-                    {busyId === r._id
-                      ? "Removing..."
-                      : r.status === "open" || r.status === "seeking_copy"
-                      ? "Cancel request"
-                      : "Remove"}
-                  </button>
-                </div>
-              </li>
-            ))}
+
+                  {r.status !== "open" && !isSeeking && r.adminNote && (
+                    <p
+                      className={`mt-2 rounded-lg px-3 py-1.5 text-sm ${
+                        r.status === "fulfilled" ? "bg-green-50 text-green-800" : "bg-red-50 text-red-700"
+                      }`}
+                    >
+                      <span className="font-semibold">Reply:</span> {r.adminNote}
+                    </p>
+                  )}
+
+                  <div className="mt-3 flex gap-4 text-sm font-medium">
+                    {r.status === "fulfilled" && (
+                      <Link to={`/browse?q=${encodeURIComponent(r.title)}`} className="text-primary hover:underline">
+                        Find it in the library
+                      </Link>
+                    )}
+                    <button
+                      onClick={() => handleDelete(r)}
+                      disabled={busyId === r._id}
+                      className="text-red-600 hover:underline disabled:opacity-50"
+                    >
+                      {busyId === r._id
+                        ? "Removing..."
+                        : r.status === "open" || r.status === "seeking_copy"
+                        ? "Cancel request"
+                        : "Remove"}
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>

@@ -85,6 +85,11 @@ export const resolveRequest = asyncHandler(async (req, res) => {
   request.status = req.body.status;
   request.adminNote = req.body.adminNote || "";
   request.resolvedAt = new Date();
+  if (req.body.status === "seeking_copy") {
+    request.userResponse = "pending";
+    request.userResponseNote = "";
+    request.userRespondedAt = null;
+  }
   await request.save();
 
   // Tell the requester. The response does not wait for the email
@@ -101,4 +106,29 @@ export const resolveRequest = asyncHandler(async (req, res) => {
   }
 
   res.json({ success: true, request });
+});
+
+// PATCH /api/requests/:id/respond  { response: "accepted" | "rejected", note?: string } (requester only)
+export const respondToRequest = asyncHandler(async (req, res) => {
+  const { response, note = "" } = req.body;
+  if (!["accepted", "rejected"].includes(response)) {
+    throw new ApiError(400, "Response must be 'accepted' or 'rejected'");
+  }
+
+  const request = await BookRequest.findOne({ _id: req.params.id, user: req.user._id });
+  if (!request) throw new ApiError(404, "Request not found");
+  if (request.status !== "seeking_copy") {
+    throw new ApiError(400, "This request is not currently seeking a copy from you");
+  }
+
+  request.userResponse = response;
+  request.userResponseNote = note.trim();
+  request.userRespondedAt = new Date();
+  await request.save();
+
+  res.json({
+    success: true,
+    message: response === "accepted" ? "Thank you! Please proceed to upload the book." : "Response recorded.",
+    request,
+  });
 });

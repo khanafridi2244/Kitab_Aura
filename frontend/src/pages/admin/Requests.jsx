@@ -199,6 +199,41 @@ export default function Requests() {
                     </div>
                   )}
 
+                  {/* User response indicator for seeking_copy */}
+                  {tab === "seeking_copy" && (
+                    <div className="mt-2">
+                      {r.userResponse === "accepted" ? (
+                        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-green-200 bg-green-50 p-3 text-xs text-green-900">
+                          <div>
+                            <span className="font-bold">User Response: ACCEPTED</span> &mdash; The user confirmed they have this book and will upload it!
+                            {r.userRespondedAt && (
+                              <span className="ml-1 text-green-700">({new Date(r.userRespondedAt).toLocaleDateString()})</span>
+                            )}
+                          </div>
+                          <span className="rounded bg-green-200 px-2 py-0.5 font-semibold text-green-900">
+                            Book Available
+                          </span>
+                        </div>
+                      ) : r.userResponse === "rejected" ? (
+                        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-900">
+                          <div>
+                            <span className="font-bold">User Response: REJECTED</span> &mdash; The user noted that they do not have this book.
+                            {r.userRespondedAt && (
+                              <span className="ml-1 text-red-700">({new Date(r.userRespondedAt).toLocaleDateString()})</span>
+                            )}
+                          </div>
+                          <span className="rounded bg-red-200 px-2 py-0.5 font-semibold text-red-900">
+                            Not Available
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-900">
+                          <span className="font-semibold">User Response: PENDING</span> &mdash; Waiting for the user to accept or reject.
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {/* Open / Seeking action panel */}
                   {(tab === "open" || tab === "seeking_copy") &&
                     (panel ? (

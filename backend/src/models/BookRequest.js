@@ -14,6 +14,15 @@ const bookRequestSchema = new mongoose.Schema(
     status: { type: String, enum: REQUEST_STATUSES, default: "open" },
     adminNote: { type: String, trim: true, maxlength: 300, default: "" },
     resolvedAt: { type: Date },
+
+    // User's response when admin seeks a copy from them
+    userResponse: {
+      type: String,
+      enum: ["pending", "accepted", "rejected"],
+      default: "pending",
+    },
+    userResponseNote: { type: String, trim: true, maxlength: 300, default: "" },
+    userRespondedAt: { type: Date },
   },
   { timestamps: true }
 );

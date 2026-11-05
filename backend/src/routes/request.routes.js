@@ -7,6 +7,7 @@ import {
   getAllRequests,
   resolveRequest,
   getCommunityRequests,
+  respondToRequest,
 } from "../controllers/request.controller.js";
 import { protect, authorize } from "../middleware/auth.js";
 import validate from "../middleware/validate.js";
@@ -28,6 +29,11 @@ const resolveSchema = z
   })
   .refine((d) => d.status !== "declined" || d.adminNote, "Please give a reason when declining a request");
 
+const respondSchema = z.object({
+  response: z.enum(["accepted", "rejected"], "Response must be accepted or rejected"),
+  note: z.string().trim().max(300, "Note is too long (max 300 characters)").optional(),
+});
+
 // Public: books that users requested and admin is actively seeking copies of
 router.get("/community", getCommunityRequests);
 
@@ -36,6 +42,7 @@ router.use(protect);
 // Every logged-in user
 router.get("/mine", getMyRequests);
 router.post("/", validate(createSchema), createRequest);
+router.patch("/:id/respond", validate(respondSchema), respondToRequest);
 router.delete("/:id", deleteMyRequest);
 
 // Admin only

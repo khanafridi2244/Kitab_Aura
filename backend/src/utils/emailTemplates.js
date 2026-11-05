@@ -66,13 +66,14 @@ export const requestStatusEmail = ({ name, title, status, note }) => {
   }
 
   if (status === "seeking_copy") {
+    const requestsUrl = `${clientUrl()}/requests`;
     const uploadUrl = `${clientUrl()}/upload?title=${encodeURIComponent(clean)}`;
     return {
-      subject: `Seeking a copy of "${clean}" - Can you help?`,
-      text: `Hi ${first},\n\nRegarding your request for "${clean}": We checked our archives and unfortunately we do not currently have a copy of this book.\n\nDo you or anyone you know have a digital copy (PDF) or physical copy? If so, you can upload it to the library to help make it available for all readers.\n\n${note ? `Note from the admin: ${note}\n\n` : ""}Upload it here: ${uploadUrl}\n\nKitabAura`,
+      subject: `Action Needed: Seeking a copy of "${clean}" - Do you have it?`,
+      text: `Hi ${first},\n\nRegarding your request for "${clean}": We checked our archives and unfortunately we do not currently have a copy of this book.\n\nDo you have this book available and want to share it?\n- If YES: Please accept the request and upload the PDF here: ${uploadUrl}\n- If NO: Please visit your requests page to reject the request: ${requestsUrl}\n\n${note ? `Note from the admin: ${note}\n\n` : ""}KitabAura Team`,
       html: layout(
-        "We are seeking a copy of this book",
-        `<p>Hi ${e(first)},</p><p>Thank you for requesting <strong>${e(title)}</strong>. We checked our library archives and unfortunately we do not currently have this book in stock.</p><p>Do you or anyone in your circle have a copy to share? If you have a PDF, you can upload it directly to KitabAura to make it available for other readers.</p>${note ? `<p style="background:#fef3c7;padding:10px 12px;border-radius:6px;color:#92400e"><strong>Note from admin:</strong> ${e(note)}</p>` : ""}${button(uploadUrl, "Upload this book to KitabAura")}<p>Thank you for helping our reading community grow.</p>`
+        "Can you share a copy of this book?",
+        `<p>Hi ${e(first)},</p><p>Thank you for requesting <strong>${e(title)}</strong>. We checked our library archives and unfortunately we do not currently have this book.</p><p><strong>Do you have this book available?</strong></p><ul><li><strong>If you have it:</strong> Accept and upload the PDF to share it with fellow readers.</li><li><strong>If not available:</strong> Go to your requests and reject the request so our team knows.</li></ul>${note ? `<p style="background:#fef3c7;padding:10px 12px;border-radius:6px;color:#92400e"><strong>Note from admin:</strong> ${e(note)}</p>` : ""}${button(uploadUrl, "Accept & Upload Book")}<p style="font-size:13px;color:#5d6a63">If you do not have this book, <a href="${e(requestsUrl)}" style="color:#0f4c3a;text-decoration:underline">click here to reject the request</a> on your requests page.</p>`
       ),
     };
   }
