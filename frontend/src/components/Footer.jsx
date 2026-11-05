@@ -47,9 +47,8 @@ export default function Footer() {
         <Column title="Information">
           <li><Link to="/#about" className={linkClass}>About KitabAura</Link></li>
           <li><Link to="/#faq" className={linkClass}>FAQ</Link></li>
-          {CONTACT_EMAIL && (
-            <li><a href={`mailto:${CONTACT_EMAIL}`} className={linkClass}>Contact us</a></li>
-          )}
+          <li><Link to="/#newsletter" className={linkClass}>Stay with us</Link></li>
+          <li><Link to="/contact" className={linkClass}>Contact us</Link></li>
         </Column>
 
         <Column title="Community">

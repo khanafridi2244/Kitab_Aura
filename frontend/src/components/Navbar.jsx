@@ -9,9 +9,11 @@ const NAV = [
   { label: "Home", to: "/", isActive: (p, h) => p === "/" && !h },
   { label: "Explore Books", to: "/browse", isActive: (p) => p.startsWith("/browse") || p.startsWith("/books") },
   { label: "Popular", to: "/popular", isActive: (p) => p.startsWith("/popular") },
-  { label: "Categories", to: "/categories", isActive: (p) => p.startsWith("/categories") },  { label: "About", to: "/#about", isActive: (p, h) => p === "/" && h === "#about" },
+  { label: "Categories", to: "/categories", isActive: (p) => p.startsWith("/categories") },
+  { label: "About", to: "/#about", isActive: (p, h) => p === "/" && h === "#about" },
   { label: "FAQ", to: "/#faq", isActive: (p, h) => p === "/" && h === "#faq" },
   { label: "Blog", to: "/blog", isActive: (p) => p.startsWith("/blog") },
+  { label: "Contact Us", to: "/contact", isActive: (p) => p.startsWith("/contact") },
 ];
 
 const USER_LINKS = [
@@ -96,8 +98,7 @@ export default function Navbar() {
   const initial = firstName.charAt(0).toUpperCase();
 
   const navLinkClass = (active) =>
-    `border-b-2 py-1 text-sm font-medium transition ${
-      active ? "border-accent text-white" : "border-transparent text-white/80 hover:text-white"
+    `border-b-2 py-1 text-sm font-medium transition ${active ? "border-accent text-white" : "border-transparent text-white/80 hover:text-white"
     }`;
 
   const mobileLinkClass = (active) =>

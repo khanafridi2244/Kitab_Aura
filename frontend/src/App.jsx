@@ -27,6 +27,7 @@ import Requests from "./pages/admin/Requests";
 import BlogAdmin from "./pages/admin/BlogAdmin";
 import BlogEditor from "./pages/admin/BlogEditor";
 import CategoriesPage from "./pages/CategoriesPage";
+import ContactUs from "./pages/ContactUs";
 
 // Navbar on top, page content in the middle, footer at the bottom
 function Layout() {
@@ -78,6 +79,7 @@ export default function App() {
         <Route path="/popular" element={<Popular />} />
         <Route path="/books/:id" element={<BookDetail />} />
         <Route path="/blog" element={<Blog />} />
+        <Route path="/contact" element={<ContactUs />} />
         <Route path="/blog/:slug" element={<BlogPost />} />
         <Route path="/unsubscribe/:token" element={<Unsubscribe />} />
         <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
