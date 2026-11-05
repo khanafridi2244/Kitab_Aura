@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import api, { getErrorMessage } from "../api/axios";
 import { useAuth } from "../hooks/useAuth";
 
@@ -14,9 +14,18 @@ const emptyForm = { title: "", author: "", language: "", category: "", descripti
 
 export default function Upload() {
   const { isAdmin } = useAuth();
+  const [searchParams] = useSearchParams();
+  const reqTitle = searchParams.get("title") || "";
+  const reqAuthor = searchParams.get("author") || "";
+  const reqLanguage = searchParams.get("language") || "";
 
   const [categories, setCategories] = useState([]);
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState(() => ({
+    ...emptyForm,
+    title: reqTitle,
+    author: reqAuthor,
+    language: LANGUAGES.includes(reqLanguage.toLowerCase()) ? reqLanguage.toLowerCase() : "",
+  }));
   const [pdf, setPdf] = useState(null);
   const [cover, setCover] = useState(null);
   const [formKey, setFormKey] = useState(0); // changing it clears the file inputs
@@ -151,6 +160,15 @@ export default function Upload() {
           : "Your book will be reviewed by an admin before it goes live."}{" "}
         Only share books you have the right to share: public domain works, or your own.
       </p>
+
+      {reqTitle && (
+        <div className="mt-4 rounded-xl border border-accent/40 bg-accent/15 p-4 text-sm text-ink">
+          <p className="font-semibold text-primary">Fulfilling a reader request</p>
+          <p className="mt-0.5 text-xs text-muted">
+            Thank you for sharing a copy of <strong>"{reqTitle}"</strong>! Your upload helps satisfy a requested book in the library.
+          </p>
+        </div>
+      )}
 
       {error && (
         <div role="alert" className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">

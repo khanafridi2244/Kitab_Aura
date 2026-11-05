@@ -65,6 +65,18 @@ export const requestStatusEmail = ({ name, title, status, note }) => {
     };
   }
 
+  if (status === "seeking_copy") {
+    const uploadUrl = `${clientUrl()}/upload?title=${encodeURIComponent(clean)}`;
+    return {
+      subject: `Seeking a copy of "${clean}" - Can you help?`,
+      text: `Hi ${first},\n\nRegarding your request for "${clean}": We checked our archives and unfortunately we do not currently have a copy of this book.\n\nDo you or anyone you know have a digital copy (PDF) or physical copy? If so, you can upload it to the library to help make it available for all readers.\n\n${note ? `Note from the admin: ${note}\n\n` : ""}Upload it here: ${uploadUrl}\n\nKitabAura`,
+      html: layout(
+        "We are seeking a copy of this book",
+        `<p>Hi ${e(first)},</p><p>Thank you for requesting <strong>${e(title)}</strong>. We checked our library archives and unfortunately we do not currently have this book in stock.</p><p>Do you or anyone in your circle have a copy to share? If you have a PDF, you can upload it directly to KitabAura to make it available for other readers.</p>${note ? `<p style="background:#fef3c7;padding:10px 12px;border-radius:6px;color:#92400e"><strong>Note from admin:</strong> ${e(note)}</p>` : ""}${button(uploadUrl, "Upload this book to KitabAura")}<p>Thank you for helping our reading community grow.</p>`
+      ),
+    };
+  }
+
   const url = `${clientUrl()}/requests`;
   return {
     subject: `About your book request: "${clean}"`,

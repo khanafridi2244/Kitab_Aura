@@ -4,6 +4,7 @@ import api, { getErrorMessage } from "../../api/axios";
 
 const TABS = [
   { key: "open", label: "Open" },
+  { key: "seeking_copy", label: "Seeking Copy from Users" },
   { key: "fulfilled", label: "Fulfilled" },
   { key: "declined", label: "Declined" },
 ];
@@ -14,7 +15,12 @@ export default function Requests() {
   const tab = TABS.some((t) => t.key === statusParam) ? statusParam : "open";
 
   // "key" records which tab these results belong to, so loading = (results are for another tab)
-  const [result, setResult] = useState({ key: null, requests: [], counts: { open: 0, fulfilled: 0, declined: 0 }, error: "" });
+  const [result, setResult] = useState({
+    key: null,
+    requests: [],
+    counts: { open: 0, fulfilled: 0, declined: 0, seeking_copy: 0 },
+    error: "",
+  });
   const loading = result.key !== tab;
 
   const [resolving, setResolving] = useState(null); // { id, status } while the note box is open
@@ -42,7 +48,13 @@ export default function Requests() {
 
   const openPanel = (id, status) => {
     setResolving({ id, status });
-    setNote("");
+    if (status === "seeking_copy") {
+      setNote(
+        "We checked our library archives and do not currently have this book. If you or someone in our community has a digital or physical copy, please upload it to KitabAura!"
+      );
+    } else {
+      setNote("");
+    }
     setNotice({ type: "", text: "" });
   };
 
@@ -54,9 +66,17 @@ export default function Requests() {
       setResult((r) => ({
         ...r,
         requests: r.requests.filter((x) => x._id !== request._id),
-        counts: { ...r.counts, open: r.counts.open - 1, [resolving.status]: r.counts[resolving.status] + 1 },
+        counts: {
+          ...r.counts,
+          [tab]: Math.max(0, (r.counts[tab] || 0) - 1),
+          [resolving.status]: (r.counts[resolving.status] || 0) + 1,
+        },
       }));
-      setNotice({ type: "success", text: `"${request.title}" was marked ${resolving.status}.` });
+      const actionMessage =
+        resolving.status === "seeking_copy"
+          ? `Request sent to ${request.user?.name || "the user"}! An email with an upload link was dispatched, and the title is now listed on the Community Wanted board.`
+          : `"${request.title}" was marked ${resolving.status}.`;
+      setNotice({ type: "success", text: actionMessage });
       setResolving(null);
     } catch (err) {
       setNotice({ type: "error", text: getErrorMessage(err) });
@@ -73,9 +93,11 @@ export default function Requests() {
         &larr; Back to dashboard
       </Link>
       <h1 className="mt-3 text-2xl font-bold text-primary">Book requests</h1>
-      <p className="mt-1 text-sm text-muted">Books that readers asked for. The reader is emailed when you answer.</p>
+      <p className="mt-1 text-sm text-muted">
+        Books that readers requested. If you don't have a book, you can request the user and community to upload a copy.
+      </p>
 
-      <div role="tablist" aria-label="Request status" className="mt-6 flex gap-1 border-b border-gray-200">
+      <div role="tablist" aria-label="Request status" className="mt-6 flex flex-wrap gap-1 border-b border-gray-200">
         {TABS.map((t) => (
           <button
             key={t.key}
@@ -87,7 +109,7 @@ export default function Requests() {
             }`}
           >
             {t.label}
-            <span className="ml-1.5 rounded-full bg-soft px-2 py-0.5 text-xs">{counts[t.key]}</span>
+            <span className="ml-1.5 rounded-full bg-soft px-2 py-0.5 text-xs">{counts[t.key] || 0}</span>
           </button>
         ))}
       </div>
@@ -117,7 +139,11 @@ export default function Requests() {
         ) : requests.length === 0 ? (
           <div className="rounded-xl bg-soft px-4 py-14 text-center">
             <p className="text-lg font-semibold text-primary">
-              {tab === "open" ? "No open requests" : `No ${tab} requests`}
+              {tab === "open"
+                ? "No open requests"
+                : tab === "seeking_copy"
+                ? "No books currently being sought from users"
+                : `No ${tab} requests`}
             </p>
             <p className="mt-1 text-sm text-muted">
               {tab === "open" ? "You are all caught up." : "Nothing here yet."}
@@ -128,56 +154,105 @@ export default function Requests() {
             {requests.map((r) => {
               const panel = resolving?.id === r._id ? resolving : null;
               const busy = busyId === r._id;
-              const needsNote = panel?.status === "declined";
+              const isDeclining = panel?.status === "declined";
+              const isSeeking = panel?.status === "seeking_copy";
 
               return (
-                <li key={r._id} className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-                  <h2 className="font-semibold text-ink">{r.title}</h2>
-                  <p className="text-sm text-muted">
-                    {r.author ? `${r.author} · ` : ""}
-                    <span className="capitalize">{r.language}</span>
-                  </p>
-                  <p className="mt-0.5 text-xs text-muted">
-                    From {r.user?.name || "a deleted user"} ({r.user?.email || "no email"}) ·{" "}
+                <li key={r._id} className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div>
+                      <h2 className="font-semibold text-lg text-ink">{r.title}</h2>
+                      <p className="text-sm text-muted">
+                        {r.author ? `${r.author} · ` : ""}
+                        <span className="capitalize">{r.language}</span>
+                      </p>
+                    </div>
+                    <span
+                      className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                        r.status === "open"
+                          ? "bg-amber-100 text-amber-800"
+                          : r.status === "seeking_copy"
+                          ? "bg-blue-100 text-blue-800"
+                          : r.status === "fulfilled"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {r.status === "seeking_copy" ? "Seeking Copy from Users" : r.status.charAt(0).toUpperCase() + r.status.slice(1)}
+                    </span>
+                  </div>
+
+                  <p className="mt-1 text-xs text-muted">
+                    Requested by <span className="font-medium text-ink">{r.user?.name || "Reader"}</span> ({r.user?.email || "no email"}) ·{" "}
                     {new Date(r.createdAt).toLocaleDateString()}
                   </p>
-                  {r.note && <p className="mt-2 text-sm">{r.note}</p>}
 
-                  {tab !== "open" && r.adminNote && (
-                    <p className="mt-2 rounded-lg bg-soft px-3 py-1.5 text-sm">
-                      <span className="font-semibold">Your reply:</span> {r.adminNote}
-                    </p>
+                  {r.note && (
+                    <div className="mt-2 rounded-lg bg-soft/60 px-3 py-2 text-sm text-ink">
+                      <span className="font-medium text-muted">Reader's note:</span> {r.note}
+                    </div>
                   )}
 
-                  {tab === "open" &&
+                  {r.adminNote && (tab === "seeking_copy" || tab === "fulfilled" || tab === "declined") && (
+                    <div className="mt-2 rounded-lg bg-blue-50/70 p-3 text-sm text-blue-900 border border-blue-100">
+                      <span className="font-semibold">Message sent to user:</span> {r.adminNote}
+                    </div>
+                  )}
+
+                  {/* Open / Seeking action panel */}
+                  {(tab === "open" || tab === "seeking_copy") &&
                     (panel ? (
                       <div className="mt-4 border-t border-gray-100 pt-4">
                         <label className="block text-sm font-medium">
-                          {needsNote ? "Reason for declining" : "Note for the reader"}{" "}
-                          {!needsNote && <span className="font-normal text-muted">(optional)</span>}
+                          {isDeclining ? (
+                            "Reason for declining *"
+                          ) : isSeeking ? (
+                            <>
+                              Message to the user & community
+                              <span className="block text-xs font-normal text-muted mt-0.5">
+                                Notify the user that you don't have this book, and invite them or other community members to upload a copy.
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              Note for the reader <span className="font-normal text-muted">(optional)</span>
+                            </>
+                          )}
                           <textarea
                             value={note}
                             onChange={(e) => setNote(e.target.value)}
-                            rows={2}
+                            rows={3}
                             maxLength={300}
                             autoFocus
                             placeholder={
-                              needsNote
+                              isDeclining
                                 ? "For example: not available in digital form, or protected by copyright"
-                                : "For example: added today, search for the title"
+                                : isSeeking
+                                ? "For example: We searched our archives but could not find this book. If you have a copy, please upload it to KitabAura!"
+                                : "For example: Added today! Search for the title on Browse page."
                             }
-                            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                            className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                           />
                         </label>
-                        <div className="mt-2 flex gap-2">
+                        <div className="mt-3 flex flex-wrap gap-2">
                           <button
                             onClick={() => confirm(r)}
-                            disabled={busy || (needsNote && !note.trim())}
-                            className={`rounded-lg px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 ${
-                              needsNote ? "bg-red-600 hover:bg-red-700" : "bg-primary hover:bg-primary-dark"
+                            disabled={busy || (isDeclining && !note.trim())}
+                            className={`rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-sm disabled:opacity-50 ${
+                              isDeclining
+                                ? "bg-red-600 hover:bg-red-700"
+                                : isSeeking
+                                ? "bg-[#c99a3b] text-[#1c2b25] hover:bg-[#d9a441]"
+                                : "bg-primary hover:bg-primary-dark"
                             }`}
                           >
-                            {busy ? "Saving..." : needsNote ? "Confirm decline" : "Confirm fulfilled"}
+                            {busy
+                              ? "Saving..."
+                              : isDeclining
+                              ? "Confirm decline"
+                              : isSeeking
+                              ? "Send Request to User & Community"
+                              : "Confirm fulfilled"}
                           </button>
                           <button
                             onClick={() => setResolving(null)}
@@ -194,17 +269,29 @@ export default function Requests() {
                           to={`/browse?q=${encodeURIComponent(r.title)}`}
                           className="mr-2 text-sm font-medium text-primary hover:underline"
                         >
-                          Check the library
+                          Check library &rarr;
                         </Link>
+
                         <button
                           onClick={() => openPanel(r._id, "fulfilled")}
-                          className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-dark"
+                          className="rounded-lg bg-primary px-3.5 py-1.5 text-sm font-semibold text-white hover:bg-primary-dark shadow-sm"
                         >
                           Mark fulfilled
                         </button>
+
+                        {tab === "open" && (
+                          <button
+                            onClick={() => openPanel(r._id, "seeking_copy")}
+                            className="rounded-lg border border-accent bg-accent/15 px-3.5 py-1.5 text-sm font-semibold text-amber-900 hover:bg-accent/25 transition"
+                            title="Book is not with admin - request the user or community to provide a copy"
+                          >
+                            Request book from user
+                          </button>
+                        )}
+
                         <button
                           onClick={() => openPanel(r._id, "declined")}
-                          className="rounded-lg border border-red-300 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50"
+                          className="rounded-lg border border-red-300 px-3.5 py-1.5 text-sm font-semibold text-red-600 hover:bg-red-50"
                         >
                           Decline
                         </button>

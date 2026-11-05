@@ -6,10 +6,16 @@ const LANGUAGES = ["pashto", "urdu", "english", "arabic", "persian"];
 
 const STATUS_STYLES = {
   open: "bg-amber-100 text-amber-800",
+  seeking_copy: "bg-blue-100 text-blue-800",
   fulfilled: "bg-green-100 text-green-800",
   declined: "bg-red-100 text-red-800",
 };
-const STATUS_LABEL = { open: "Open", fulfilled: "Fulfilled", declined: "Declined" };
+const STATUS_LABEL = {
+  open: "Open",
+  seeking_copy: "Admin seeking copy",
+  fulfilled: "Fulfilled",
+  declined: "Declined",
+};
 
 const inputClass =
   "mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20";
@@ -18,6 +24,7 @@ const emptyForm = { title: "", author: "", language: "", note: "" };
 
 export default function RequestBook() {
   const [state, setState] = useState({ loading: true, requests: [], error: "" });
+  const [communityRequests, setCommunityRequests] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [submitting, setSubmitting] = useState(false);
   const [busyId, setBusyId] = useState(null);
@@ -29,6 +36,12 @@ export default function RequestBook() {
       .get("/requests/mine")
       .then(({ data }) => active && setState({ loading: false, requests: data.requests, error: "" }))
       .catch((err) => active && setState({ loading: false, requests: [], error: getErrorMessage(err) }));
+
+    api
+      .get("/requests/community")
+      .then(({ data }) => active && setCommunityRequests(data.requests || []))
+      .catch(() => {});
+
     return () => {
       active = false;
     };
@@ -54,7 +67,9 @@ export default function RequestBook() {
 
   const handleDelete = async (request) => {
     const message =
-      request.status === "open" ? `Cancel your request for "${request.title}"?` : `Remove "${request.title}" from your list?`;
+      request.status === "open" || request.status === "seeking_copy"
+        ? `Cancel your request for "${request.title}"?`
+        : `Remove "${request.title}" from your list?`;
     if (!window.confirm(message)) return;
 
     setNotice({ type: "", text: "" });
@@ -129,6 +144,56 @@ export default function RequestBook() {
         </button>
       </form>
 
+      {/* ── Community Wanted Books Section ── */}
+      {communityRequests.length > 0 && (
+        <div className="mt-10 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-bold text-primary">Books Wanted by the Community</h2>
+              <p className="mt-0.5 text-xs text-muted">
+                The admin and readers are actively seeking copies of these books. If you have any of them, upload them to help fellow readers!
+              </p>
+            </div>
+            <span className="rounded-full bg-soft px-3 py-1 text-xs font-semibold text-primary">
+              {communityRequests.length} {communityRequests.length === 1 ? "book wanted" : "books wanted"}
+            </span>
+          </div>
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {communityRequests.map((cr) => (
+              <div key={cr._id} className="flex flex-col justify-between rounded-xl border border-line bg-soft/40 p-4">
+                <div>
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-semibold text-ink text-sm leading-snug">{cr.title}</h3>
+                    <span className="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-800">
+                      Seeking copy
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-muted">
+                    {cr.author ? `${cr.author} · ` : ""}
+                    <span className="capitalize">{cr.language}</span>
+                  </p>
+                  {cr.adminNote && (
+                    <p className="mt-2 rounded bg-white/80 p-2 text-xs text-ink line-clamp-2">
+                      <span className="font-semibold text-muted">Admin:</span> {cr.adminNote}
+                    </p>
+                  )}
+                </div>
+                <div className="mt-3 pt-2 border-t border-line/60">
+                  <Link
+                    to={`/upload?title=${encodeURIComponent(cr.title)}&author=${encodeURIComponent(cr.author || "")}&language=${encodeURIComponent(cr.language || "")}`}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
+                  >
+                    I have this book &mdash; Upload it &rarr;
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── User's Own Requests ── */}
       <h2 className="mt-10 text-lg font-bold text-ink">Your requests</h2>
       <div className="mt-3" aria-live="polite">
         {loading ? (
@@ -151,17 +216,35 @@ export default function RequestBook() {
               <li key={r._id} className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="font-semibold text-ink">{r.title}</h3>
-                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_STYLES[r.status]}`}>
-                    {STATUS_LABEL[r.status]}
+                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_STYLES[r.status] || "bg-gray-100 text-gray-800"}`}>
+                    {STATUS_LABEL[r.status] || r.status}
                   </span>
                 </div>
                 <p className="text-sm text-muted">
                   {r.author ? `${r.author} · ` : ""}
                   <span className="capitalize">{r.language}</span> · Requested {new Date(r.createdAt).toLocaleDateString()}
                 </p>
-                {r.note && <p className="mt-2 text-sm">{r.note}</p>}
+                {r.note && <p className="mt-2 text-sm text-ink">{r.note}</p>}
 
-                {r.status !== "open" && r.adminNote && (
+                {/* Seeking copy callout */}
+                {r.status === "seeking_copy" && (
+                  <div className="mt-3 rounded-lg border border-blue-200 bg-blue-50/80 p-3 text-sm text-blue-900">
+                    <p className="font-semibold text-blue-900">Admin requested copy from you & the community:</p>
+                    <p className="mt-1 text-xs text-blue-800">
+                      {r.adminNote || "The admin checked our archives and does not currently have this book. If you or someone you know has a PDF or copy, please upload it to the library!"}
+                    </p>
+                    <div className="mt-2.5">
+                      <Link
+                        to={`/upload?title=${encodeURIComponent(r.title)}&author=${encodeURIComponent(r.author || "")}&language=${encodeURIComponent(r.language || "")}`}
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-primary-dark"
+                      >
+                        I have this book &mdash; Upload it now &rarr;
+                      </Link>
+                    </div>
+                  </div>
+                )}
+
+                {r.status !== "open" && r.status !== "seeking_copy" && r.adminNote && (
                   <p
                     className={`mt-2 rounded-lg px-3 py-1.5 text-sm ${
                       r.status === "fulfilled" ? "bg-green-50 text-green-800" : "bg-red-50 text-red-700"
@@ -182,7 +265,11 @@ export default function RequestBook() {
                     disabled={busyId === r._id}
                     className="text-red-600 hover:underline disabled:opacity-50"
                   >
-                    {busyId === r._id ? "Removing..." : r.status === "open" ? "Cancel request" : "Remove"}
+                    {busyId === r._id
+                      ? "Removing..."
+                      : r.status === "open" || r.status === "seeking_copy"
+                      ? "Cancel request"
+                      : "Remove"}
                   </button>
                 </div>
               </li>

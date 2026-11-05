@@ -46,7 +46,17 @@ export const deleteMyRequest = asyncHandler(async (req, res) => {
   res.json({ success: true, message: "Request removed" });
 });
 
-// GET /api/requests?status=open|fulfilled|declined (admin)
+// GET /api/requests/community (public: books requested by readers that admin is seeking copies for)
+export const getCommunityRequests = asyncHandler(async (req, res) => {
+  const requests = await BookRequest.find({ status: "seeking_copy" })
+    .sort("-resolvedAt")
+    .limit(50)
+    .select("title author language note adminNote resolvedAt createdAt");
+
+  res.json({ success: true, count: requests.length, requests });
+});
+
+// GET /api/requests?status=open|fulfilled|declined|seeking_copy (admin)
 export const getAllRequests = asyncHandler(async (req, res) => {
   const status = REQUEST_STATUSES.includes(req.query.status) ? req.query.status : "open";
 
@@ -58,7 +68,7 @@ export const getAllRequests = asyncHandler(async (req, res) => {
     BookRequest.aggregate([{ $group: { _id: "$status", count: { $sum: 1 } } }]),
   ]);
 
-  const counts = { open: 0, fulfilled: 0, declined: 0 };
+  const counts = { open: 0, fulfilled: 0, declined: 0, seeking_copy: 0 };
   countAgg.forEach((c) => (counts[c._id] = c.count));
 
   res.json({ success: true, counts, requests });
@@ -68,7 +78,9 @@ export const getAllRequests = asyncHandler(async (req, res) => {
 export const resolveRequest = asyncHandler(async (req, res) => {
   const request = await BookRequest.findById(req.params.id).populate("user", "name email");
   if (!request) throw new ApiError(404, "Request not found");
-  if (request.status !== "open") throw new ApiError(400, "This request was already answered");
+  if (request.status !== "open" && request.status !== "seeking_copy") {
+    throw new ApiError(400, "This request was already completed");
+  }
 
   request.status = req.body.status;
   request.adminNote = req.body.adminNote || "";

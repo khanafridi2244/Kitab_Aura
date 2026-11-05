@@ -6,6 +6,7 @@ import {
   deleteMyRequest,
   getAllRequests,
   resolveRequest,
+  getCommunityRequests,
 } from "../controllers/request.controller.js";
 import { protect, authorize } from "../middleware/auth.js";
 import validate from "../middleware/validate.js";
@@ -22,10 +23,13 @@ const createSchema = z.object({
 
 const resolveSchema = z
   .object({
-    status: z.enum(["fulfilled", "declined"], "Status must be fulfilled or declined"),
+    status: z.enum(["fulfilled", "declined", "seeking_copy"], "Status must be fulfilled, declined, or seeking_copy"),
     adminNote: z.string().trim().max(300, "Note is too long (max 300 characters)").optional(),
   })
   .refine((d) => d.status !== "declined" || d.adminNote, "Please give a reason when declining a request");
+
+// Public: books that users requested and admin is actively seeking copies of
+router.get("/community", getCommunityRequests);
 
 router.use(protect);
 

@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { LANGUAGES } from "./Book.js";
 
-export const REQUEST_STATUSES = ["open", "fulfilled", "declined"];
+export const REQUEST_STATUSES = ["open", "fulfilled", "declined", "seeking_copy"];
 
 const bookRequestSchema = new mongoose.Schema(
   {
