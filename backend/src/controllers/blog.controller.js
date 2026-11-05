@@ -124,6 +124,8 @@ export const createPost = asyncHandler(async (req, res) => {
   try {
     if (req.file) image = await uploadImage(req.file);
 
+    const featuredImageUrl = image?.secure_url || req.body.featuredImageUrl?.trim() || "";
+
     const post = await BlogPost.create({
       title,
       category,
@@ -135,7 +137,7 @@ export const createPost = asyncHandler(async (req, res) => {
       author: req.user._id,
       status,
       publishedAt: status === "published" ? new Date() : undefined,
-      featuredImageUrl: image?.secure_url || "",
+      featuredImageUrl,
       featuredImagePublicId: image?.public_id || "",
     });
 
@@ -175,6 +177,9 @@ export const updatePost = asyncHandler(async (req, res) => {
       newImage = await uploadImage(req.file);
       post.featuredImageUrl = newImage.secure_url;
       post.featuredImagePublicId = newImage.public_id;
+    } else if (b.featuredImageUrl !== undefined) {
+      post.featuredImageUrl = b.featuredImageUrl.trim();
+      if (!b.featuredImageUrl.trim()) post.featuredImagePublicId = "";
     } else if (b.removeImage === "true") {
       post.featuredImageUrl = "";
       post.featuredImagePublicId = "";

@@ -24,6 +24,7 @@ const createSchema = z.object({
   excerpt: z.string().max(300, "Excerpt is too long (max 300 characters)").optional(),
   content: z.string().max(50000, "Content is too long (max 50,000 characters)").optional(),
   status: z.enum(["draft", "published"], "Status must be draft or published").optional(),
+  featuredImageUrl: z.string().trim().max(1000).optional(),
   seoTitle: z.string().trim().max(70, "SEO title is too long (max 70 characters)").optional(),
   seoDescription: z.string().trim().max(160, "SEO description is too long (max 160 characters)").optional(),
   removeImage: z.enum(["true", "false"], "Invalid value").optional(),

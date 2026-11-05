@@ -73,8 +73,38 @@ export default function Dashboard() {
         >
           Manage blog
         </Link>
+        <Link
+          to="/admin/blog/new"
+          className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark"
+        >
+          + Create a blog
+        </Link>
       </div>
       <StatsPanel refreshKey={reviewCount} />
+
+      {/* Blog management shortcut */}
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+        <div>
+          <h2 className="text-base font-bold text-primary">Blog & Editorial</h2>
+          <p className="mt-0.5 text-xs text-muted">
+            Write and publish articles, author highlights, and reading tips for KitabAura readers.
+          </p>
+        </div>
+        <div className="flex gap-2.5">
+          <Link
+            to="/admin/blog/new"
+            className="rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-primary-dark"
+          >
+            + Create a blog
+          </Link>
+          <Link
+            to="/admin/blog"
+            className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-xs font-semibold text-ink hover:bg-soft"
+          >
+            Manage blogs
+          </Link>
+        </div>
+      </div>
       <h2 className="mt-8 flex items-center gap-2 text-lg font-bold text-ink">
         Pending approvals
         {!loading && !error && (

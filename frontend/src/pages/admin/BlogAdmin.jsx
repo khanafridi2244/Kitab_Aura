@@ -79,9 +79,12 @@ export default function BlogAdmin() {
       </Link>
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold text-primary">Blog posts</h1>
-        <Link to="/admin/blog/new" className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-dark">
-          New post
+        <div>
+          <h1 className="text-2xl font-bold text-primary">Blog posts</h1>
+          <p className="mt-0.5 text-xs text-muted">Create, edit, publish, and manage articles for the library.</p>
+        </div>
+        <Link to="/admin/blog/new" className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark">
+          + Create a blog
         </Link>
       </div>
 
@@ -126,8 +129,14 @@ export default function BlogAdmin() {
           </div>
         ) : posts.length === 0 ? (
           <div className="rounded-xl bg-soft px-4 py-14 text-center">
-            <p className="text-lg font-semibold text-primary">No posts here</p>
-            <p className="mt-1 text-sm text-muted">Write the first one with the New post button.</p>
+            <p className="text-lg font-semibold text-primary">No blog posts found</p>
+            <p className="mt-1 text-sm text-muted">Write your first post to share articles, book reviews, or tips.</p>
+            <Link
+              to="/admin/blog/new"
+              className="mt-4 inline-block rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark"
+            >
+              + Create a blog
+            </Link>
           </div>
         ) : (
           <ul className="space-y-3">

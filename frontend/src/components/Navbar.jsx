@@ -152,9 +152,17 @@ export default function Navbar() {
                     </Link>
                   ))}
                   {isAdmin && (
-                    <Link to="/admin" className="block px-4 py-2 text-sm font-semibold text-primary hover:bg-soft">
-                      Admin dashboard
-                    </Link>
+                    <>
+                      <Link to="/admin" className="block px-4 py-2 text-sm font-semibold text-primary hover:bg-soft">
+                        Admin dashboard
+                      </Link>
+                      <Link to="/admin/blog/new" className="block px-4 py-2 text-sm text-primary font-medium hover:bg-soft">
+                        + Create a blog
+                      </Link>
+                      <Link to="/admin/blog" className="block px-4 py-2 text-sm hover:bg-soft">
+                        Manage blogs
+                      </Link>
+                    </>
                   )}
                   <div className="my-2 border-t border-line" />
                   <button type="button" onClick={handleLogout} className="block w-full px-4 py-2 text-left text-sm hover:bg-soft">
@@ -219,9 +227,17 @@ export default function Navbar() {
                     </Link>
                   ))}
                   {isAdmin && (
-                    <Link to="/admin" onClick={closeAll} className={mobileLinkClass(pathname.startsWith("/admin"))}>
-                      Admin dashboard
-                    </Link>
+                    <>
+                      <Link to="/admin" onClick={closeAll} className={mobileLinkClass(pathname === "/admin")}>
+                        Admin dashboard
+                      </Link>
+                      <Link to="/admin/blog/new" onClick={closeAll} className={mobileLinkClass(pathname === "/admin/blog/new")}>
+                        + Create a blog
+                      </Link>
+                      <Link to="/admin/blog" onClick={closeAll} className={mobileLinkClass(pathname === "/admin/blog")}>
+                        Manage blogs
+                      </Link>
+                    </>
                   )}
                   <button type="button" onClick={handleLogout} className="rounded-lg px-3 py-2 text-left text-sm font-medium text-white/85 hover:bg-white/10">
                     Log out
