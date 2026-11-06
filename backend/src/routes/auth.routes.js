@@ -6,6 +6,8 @@ import {
   refresh,
   logout,
   getMe,
+  forgotPassword,
+  resetPassword,
 } from "../controllers/auth.controller.js";
 import { protect } from "../middleware/auth.js";
 import validate from "../middleware/validate.js";
@@ -24,6 +26,8 @@ const authLimiter = rateLimit({
 
 router.post("/register", authLimiter, validate(registerSchema), register);
 router.post("/login", authLimiter, validate(loginSchema), login);
+router.post("/forgot-password", authLimiter, forgotPassword);
+router.post("/reset-password", authLimiter, resetPassword);
 router.post("/refresh", refresh);
 router.post("/logout", logout);
 router.get("/me", protect, getMe);

@@ -19,6 +19,9 @@ const userSchema = new mongoose.Schema(
     // Used for "Recommended for you"
     preferredLanguages: [{ type: String, enum: LANGUAGES }],
     interests: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }],
+
+    resetPasswordToken: { type: String, select: false },
+    resetPasswordExpire: { type: Date, select: false },
   },
   { timestamps: true }
 );
