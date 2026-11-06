@@ -24,18 +24,18 @@ const findByName = (key) => {
   return loose ? loose[1] : "";
 };
 
-// Makes a safe address: removes double slashes, encodes spaces and the & sign
-const toUrl = (path) => "/" + path.split("/").filter(Boolean).map(encodeURIComponent).join("/");
-
 // Slug = the category name in lowercase, every group of other characters becomes one dash:
 //   "Children's Books" -> children-s-books      "Drama & Plays" -> drama-plays
 const PUBLIC_IMAGES = {
-  "art-culture": "/images/categories/Art & Culture.jpg",
-  "business-management": "/images/categories/Business & Management.jpg",
+  literature: "/images/categories/literature.jpg",
+  "art-culture": "/images/categories/art-culture.jpg",
+  "business-management": "/images/categories/business-management.jpg",
   "children-s-books": "/images/categories/Childrens Books.jpg",
+  "children-books": "/images/categories/Childrens Books.jpg",
   "computer-science": "/images/categories/cs.png",
   dictionaries: "/images/categories/Dictionaries.jpg",
   "drama-plays": "/images/categories/drama.png",
+  "dramas-and-plays": "/images/categories/drama.png",
   economics: "/images/categories/economics.jpg",
   education: "/images/categories/education.jpg",
   biography: "/images/categories/history.webp",
@@ -47,6 +47,14 @@ const PUBLIC_IMAGES = {
 export const categoryImage = (category) => {
   const slug = typeof category === "string" ? category : category?.slug;
   const name = typeof category === "string" ? "" : category?.name;
-  const fromPublic = PUBLIC_IMAGES[slug];
-  return fromPublic ? toUrl(fromPublic) : findByName(normalize(slug)) || findByName(normalize(name)) || "";
+  const normSlug = normalize(slug);
+  const normName = normalize(name);
+
+  const fromPublic =
+    PUBLIC_IMAGES[slug] ||
+    PUBLIC_IMAGES[normSlug] ||
+    PUBLIC_IMAGES[normName];
+
+  if (fromPublic) return fromPublic;
+  return findByName(normSlug) || findByName(normName) || "/images/categories/literature.jpg";
 };
