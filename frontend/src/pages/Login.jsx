@@ -7,7 +7,7 @@ const inputClass =
   "mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-ink outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20";
 
 export default function Login() {
-  const { login, isAuthenticated, loading } = useAuth();
+  const { login, setSession, isAuthenticated, loading } = useAuth();
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const from = location.state?.from || "/"; // where to go after login
@@ -19,6 +19,7 @@ export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [forgotEmail, setForgotEmail] = useState("");
   const [resetForm, setResetForm] = useState({ token: tokenFromUrl, password: "", confirmPassword: "" });
+  const [devResetToken, setDevResetToken] = useState("");
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -46,11 +47,16 @@ export default function Login() {
     e.preventDefault();
     setError("");
     setSuccess("");
+    setDevResetToken("");
     setSubmitting(true);
     try {
-      const emailToSend = forgotEmail || form.email;
+      const emailToSend = (forgotEmail || form.email).trim();
       const { data } = await api.post("/auth/forgot-password", { email: emailToSend });
       setSuccess(data.message || "Password reset instructions have been sent to your email.");
+      if (data.resetToken) {
+        setDevResetToken(data.resetToken);
+        setResetForm((prev) => ({ ...prev, token: data.resetToken }));
+      }
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
@@ -69,18 +75,29 @@ export default function Login() {
       return;
     }
 
+    if (resetForm.password.length < 8) {
+      setError("Password must be at least 8 characters long");
+      return;
+    }
+
     setSubmitting(true);
     try {
-      await api.post("/auth/reset-password", {
-        token: resetForm.token,
+      const { data } = await api.post("/auth/reset-password", {
+        token: resetForm.token.trim(),
         password: resetForm.password,
       });
-      // Log in with new credentials or notify user
-      setSuccess("Your password has been reset successfully! Logging you in...");
-      await login(form.email || forgotEmail, resetForm.password).catch(() => {
-        // If auto-login fails, switch to login view
-        setView("login");
-      });
+
+      setSuccess("Your password has been successfully updated!");
+
+      // Update session directly so user is immediately logged in
+      if (setSession && data.user) {
+        setSession(data);
+      } else {
+        setForm((f) => ({ ...f, password: "" }));
+        setTimeout(() => {
+          setView("login");
+        }, 1500);
+      }
     } catch (err) {
       setError(getErrorMessage(err));
       setSubmitting(false);
@@ -113,6 +130,25 @@ export default function Login() {
                   <p className="font-bold">✓ Email Sent</p>
                   <p className="mt-1">{success}</p>
                 </div>
+
+                {devResetToken && (
+                  <div className="rounded-lg border border-accent/40 bg-accent/10 p-3 text-xs text-ink">
+                    <p className="font-bold text-primary">Quick Reset (Testing):</p>
+                    <p className="mt-0.5 text-muted">You can proceed directly to set your new password:</p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setView("reset");
+                        setSuccess("");
+                        setError("");
+                      }}
+                      className="mt-2 inline-block font-bold text-primary underline"
+                    >
+                      Click here to set your new password &rarr;
+                    </button>
+                  </div>
+                )}
+
                 <button
                   type="button"
                   onClick={() => {
@@ -191,7 +227,7 @@ export default function Login() {
                   value={resetForm.token}
                   onChange={(e) => setResetForm({ ...resetForm, token: e.target.value })}
                   required
-                  placeholder="Paste reset token from email"
+                  placeholder="Paste reset token"
                   className={inputClass}
                 />
               </label>
@@ -256,6 +292,7 @@ export default function Login() {
             )}
 
             <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+              {/* Email Field */}
               <label className="block text-sm font-medium text-ink">
                 Email
                 <input
@@ -269,11 +306,22 @@ export default function Login() {
                 />
               </label>
 
+              {/* Password Section with "Forgot password?" directly beneath the password input */}
               <div>
-                <div className="flex items-center justify-between text-sm">
-                  <label htmlFor="password-input" className="font-medium text-ink">
-                    Password
-                  </label>
+                <label htmlFor="password-input" className="block text-sm font-medium text-ink">
+                  Password
+                </label>
+                <input
+                  id="password-input"
+                  type="password"
+                  name="password"
+                  value={form.password}
+                  onChange={handleChange}
+                  required
+                  autoComplete="current-password"
+                  className={inputClass}
+                />
+                <div className="mt-1.5 flex justify-end">
                   <button
                     type="button"
                     onClick={() => {
@@ -287,16 +335,6 @@ export default function Login() {
                     Forgot password?
                   </button>
                 </div>
-                <input
-                  id="password-input"
-                  type="password"
-                  name="password"
-                  value={form.password}
-                  onChange={handleChange}
-                  required
-                  autoComplete="current-password"
-                  className={inputClass}
-                />
               </div>
 
               <button

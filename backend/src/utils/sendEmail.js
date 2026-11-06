@@ -2,7 +2,14 @@ import nodemailer from "nodemailer";
 
 let transporter; // created the first time an email is sent
 
-const isConfigured = () => !!(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
+const isConfigured = () => {
+  const host = process.env.SMTP_HOST;
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  if (!host || !user || !pass) return false;
+  if (user === "your_smtp_username" || pass === "your_smtp_password") return false;
+  return true;
+};
 
 const getTransporter = () => {
   if (!transporter) {
@@ -12,6 +19,9 @@ const getTransporter = () => {
       port,
       secure: port === 465, // true only for port 465, other ports upgrade the connection themselves
       auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+      connectionTimeout: 5000,
+      greetingTimeout: 5000,
+      socketTimeout: 5000,
     });
   }
   return transporter;

@@ -53,6 +53,11 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const setSession = (authData) => {
+    if (authData?.accessToken) setAccessToken(authData.accessToken);
+    if (authData?.user) setUser(authData.user);
+  };
+
   const value = {
     user,
     loading,
@@ -61,6 +66,7 @@ export function AuthProvider({ children }) {
     login,
     register,
     logout,
+    setSession,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

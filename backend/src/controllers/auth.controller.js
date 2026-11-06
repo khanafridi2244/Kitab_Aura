@@ -122,7 +122,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
     </div>
   `;
 
-  await sendEmail({
+  const emailSent = await sendEmail({
     to: user.email,
     subject: "KitabAura - Password Reset Request",
     text: message,
@@ -132,6 +132,8 @@ export const forgotPassword = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     message: "If that email is registered, password reset instructions have been sent.",
+    resetToken: !emailSent ? resetToken : undefined,
+    resetUrl: !emailSent ? resetUrl : undefined,
   });
 });
 
