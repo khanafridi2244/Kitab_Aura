@@ -76,6 +76,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/categories" element={<CategoriesPage />} />
+        <Route path="/category/:slug" element={<Browse />} />
         <Route path="/browse" element={<Browse />} />
         <Route path="/popular" element={<Popular />} />
         <Route path="/books/:id" element={<BookDetail />} />

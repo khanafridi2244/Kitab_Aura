@@ -1,4 +1,5 @@
 import { Readable } from "node:stream";
+import mongoose from "mongoose";
 import Book, { LANGUAGES } from "../models/Book.js";
 import Category from "../models/Category.js";
 import ApiError from "../utils/ApiError.js";
@@ -80,7 +81,28 @@ export const getBooks = asyncHandler(async (req, res) => {
     if (!LANGUAGES.includes(String(language).toLowerCase())) throw new ApiError(400, "Invalid language");
     filter.language = String(language).toLowerCase();
   }
-  if (category) filter.category = category;
+
+  if (category) {
+    const catStr = String(category).trim();
+    if (mongoose.Types.ObjectId.isValid(catStr)) {
+      filter.category = catStr;
+    } else {
+      // Find category by slug or name (case-insensitive)
+      const foundCat = await Category.findOne({
+        $or: [
+          { slug: catStr.toLowerCase() },
+          { name: new RegExp(`^${catStr}$`, "i") },
+        ],
+      });
+      if (foundCat) {
+        filter.category = foundCat._id;
+      } else {
+        // Safe ObjectId so non-existent category returns empty list without CastError
+        filter.category = new mongoose.Types.ObjectId();
+      }
+    }
+  }
+
   if (minRating) filter.avgRating = { $gte: Number(minRating) || 0 };
 
   const [total, books] = await Promise.all([

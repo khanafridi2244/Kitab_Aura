@@ -2,22 +2,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api, { getErrorMessage } from "../api/axios";
-
-
-
-const categoryImages = {
-  "art-culture": "/images/categories//Art & Culture.jpg",
-  "business-management": "/images/categories/Business & Management.jpg",
-  "children-books": "/images/categories/Childrens Books.jpg",
-  "computer-science": "/images/categories/cs.png",
-  dictionaries: "/images/categories/Dictionaries.jpg",
-  "dramas-and-plays": "/images/categories/drama.png",
-  economics: "/images/categories/economics.jpg",
-  education: "/images/categories/education.jpg",
-  biography: "/images/categories/history.webp",
-  novel: "/images/categories/fiction.webp",
-  poetry: "/images/categories/poetry.webp",
-};
+import { categoryImage } from "../utils/categoryImages";
 
 export default function CategoryGrid() {
   const [reloadKey, setReloadKey] = useState(0);
@@ -124,25 +109,25 @@ const shown = [...result.categories]
       {!loading && !result.error && (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {shown.map((category) => {
-            const image =
-              categoryImages[category.slug] ||
-              "/images/categories/art-culture.webp";
+            const image = categoryImage(category);
 
             return (
               <Link
                 key={category._id}
-                to={`/category/${category.slug}`}
+                to={`/browse?category=${category._id}`}
                 className="group relative isolate flex min-h-40 items-end overflow-hidden rounded-2xl bg-gray-200 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl sm:min-h-48"
               >
-                <img
-                  src={image}
-                  alt={category.name}
-                  loading="lazy"
-                  onError={(e) => {
-                    e.currentTarget.style.display = "none";
-                  }}
-                  className="absolute inset-0 -z-10 h-full w-full object-cover transition duration-500 group-hover:scale-110"
-                />
+                {image && (
+                  <img
+                    src={image}
+                    alt={category.name}
+                    loading="lazy"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                    className="absolute inset-0 -z-10 h-full w-full object-cover transition duration-500 group-hover:scale-110"
+                  />
+                )}
 
                 <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
 
@@ -150,6 +135,13 @@ const shown = [...result.categories]
                   <h3 className="text-base font-bold sm:text-lg">
                     {category.name}
                   </h3>
+
+                  {(category.nameUrdu || category.namePashto) && (
+                    <div className="mt-0.5 flex flex-wrap gap-x-2 text-xs text-white/80">
+                      {category.nameUrdu && <span lang="ur" dir="rtl">{category.nameUrdu}</span>}
+                      {category.namePashto && <span lang="ps" dir="rtl">{category.namePashto}</span>}
+                    </div>
+                  )}
 
                   <p className="mt-1 text-xs text-white/80">
                     {category.bookCount || 0}{" "}
