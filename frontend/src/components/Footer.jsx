@@ -49,6 +49,9 @@ export default function Footer() {
           <li><Link to="/#faq" className={linkClass}>FAQ</Link></li>
           <li><Link to="/#newsletter" className={linkClass}>Stay with us</Link></li>
           <li><Link to="/contact" className={linkClass}>Contact us</Link></li>
+          {CONTACT_EMAIL && (
+            <li><a href={`mailto:${CONTACT_EMAIL}`} className={linkClass}>{CONTACT_EMAIL}</a></li>
+          )}
         </Column>
 
         <Column title="Community">
