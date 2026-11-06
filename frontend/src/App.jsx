@@ -26,6 +26,7 @@ import Categories from "./pages/admin/Categories";
 import Requests from "./pages/admin/Requests";
 import BlogAdmin from "./pages/admin/BlogAdmin";
 import BlogEditor from "./pages/admin/BlogEditor";
+import ImportBooks from "./pages/admin/ImportBooks";
 import CategoriesPage from "./pages/CategoriesPage";
 import ContactUs from "./pages/ContactUs";
 
@@ -92,6 +93,7 @@ export default function App() {
         <Route path="/challenges" element={<ProtectedRoute><Challenges /></ProtectedRoute>} />
         <Route path="/requests" element={<ProtectedRoute><RequestBook /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute adminOnly><Dashboard /></ProtectedRoute>} />
+        <Route path="/admin/import-books" element={<ProtectedRoute adminOnly><ImportBooks /></ProtectedRoute>} />
         <Route path="/admin/categories" element={<ProtectedRoute adminOnly><Categories /></ProtectedRoute>} />
         <Route path="/admin/requests" element={<ProtectedRoute adminOnly><Requests /></ProtectedRoute>} />
         <Route path="/admin/blog" element={<ProtectedRoute adminOnly><BlogAdmin /></ProtectedRoute>} />

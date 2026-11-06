@@ -2,6 +2,13 @@ import Book from "../models/Book.js";
 import User from "../models/User.js";
 import Category from "../models/Category.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import ApiError from "../utils/ApiError.js";
+import {
+  searchInternetArchive,
+  searchGoogleBooks,
+  searchOpenLibrary,
+  getArchiveItemDetails,
+} from "../services/externalBooks.service.js";
 
 const MONTHS_SHOWN = 6;
 
@@ -68,5 +75,137 @@ export const getStats = asyncHandler(async (req, res) => {
       monthly,
       topBooks,
     },
+  });
+});
+
+// GET /api/admin/external-books/search (admin only)
+// Query params: q, language (urdu|pashto|english|all), source (archive|google|openlibrary), page, limit
+export const searchExternalBooks = asyncHandler(async (req, res) => {
+  const { q = "", language = "all", source = "archive", page = 1, limit = 16 } = req.query;
+
+  let result;
+  if (source === "google") {
+    result = await searchGoogleBooks({ query: q, language, page, limit });
+  } else if (source === "openlibrary") {
+    result = await searchOpenLibrary({ query: q, language, page, limit });
+  } else {
+    // Default: Internet Archive (has full readable PDFs for Urdu, Pashto, English)
+    result = await searchInternetArchive({ query: q, language, page, limit });
+  }
+
+  // Cross-reference with our existing books in MongoDB to see which books are already in the website library
+  if (result.books && result.books.length > 0) {
+    const titles = result.books.map((b) => b.title.trim());
+    const extPublicIds = result.books.map((b) => `ext_${b.externalId}`);
+
+    const existingBooks = await Book.find({
+      $or: [
+        { pdfPublicId: { $in: extPublicIds } },
+        { title: { $in: titles } },
+      ],
+    }).select("_id title pdfPublicId");
+
+    const existingMap = new Map();
+    existingBooks.forEach((eb) => {
+      if (eb.pdfPublicId) existingMap.set(eb.pdfPublicId, String(eb._id));
+      if (eb.title) existingMap.set(eb.title.toLowerCase(), String(eb._id));
+    });
+
+    result.books = result.books.map((b) => {
+      const byId = existingMap.get(`ext_${b.externalId}`);
+      const byTitle = existingMap.get(b.title.toLowerCase());
+      const existingId = byId || byTitle;
+      return {
+        ...b,
+        alreadyImported: !!existingId,
+        existingBookId: existingId || null,
+      };
+    });
+  }
+
+  res.json({
+    success: true,
+    source,
+    language,
+    ...result,
+  });
+});
+
+// GET /api/admin/external-books/details?identifier=...
+export const getExternalBookDetails = asyncHandler(async (req, res) => {
+  const { identifier } = req.query;
+  if (!identifier) throw new ApiError(400, "Identifier is required");
+
+  const details = await getArchiveItemDetails(identifier);
+  if (!details) throw new ApiError(404, "Could not resolve item details");
+
+  res.json({ success: true, details });
+});
+
+// POST /api/admin/external-books/import (admin only)
+// Body: { title, author, language, category, description, coverUrl, pdfUrl, pages, externalId }
+export const importExternalBook = asyncHandler(async (req, res) => {
+  const {
+    title,
+    author,
+    language,
+    category,
+    description = "",
+    coverUrl = "",
+    pdfUrl,
+    pages,
+    externalId = "",
+  } = req.body;
+
+  if (!title?.trim()) throw new ApiError(400, "Title is required");
+  if (!author?.trim()) throw new ApiError(400, "Author is required");
+  if (!language?.trim()) throw new ApiError(400, "Language is required");
+  if (!category) throw new ApiError(400, "Category is required");
+  if (!pdfUrl?.trim()) throw new ApiError(400, "PDF URL is required");
+
+  // Validate category exists
+  const categoryExists = await Category.exists({ _id: category });
+  if (!categoryExists) throw new ApiError(400, "Selected category does not exist");
+
+  const cleanLang = language.toLowerCase().trim();
+  const validLanguages = ["pashto", "urdu", "english", "arabic", "persian"];
+  if (!validLanguages.includes(cleanLang)) {
+    throw new ApiError(400, `Invalid language. Must be one of: ${validLanguages.join(", ")}`);
+  }
+
+  const pdfPublicId = externalId ? `ext_${externalId}` : `ext_${Date.now()}`;
+
+  // Check if already imported by publicId
+  const existing = await Book.findOne({ pdfPublicId });
+  if (existing) {
+    return res.status(200).json({
+      success: true,
+      message: "This book is already in your library",
+      book: existing,
+      alreadyExisted: true,
+    });
+  }
+
+  const book = await Book.create({
+    title: title.trim().substring(0, 200),
+    author: author.trim().substring(0, 100),
+    language: cleanLang,
+    category,
+    description: description.trim().substring(0, 3000),
+    pages: pages ? Math.max(1, parseInt(pages, 10)) : undefined,
+    coverUrl: coverUrl.trim(),
+    coverPublicId: "",
+    pdfUrl: pdfUrl.trim(),
+    pdfPublicId,
+    uploadedBy: req.user._id,
+    status: "approved", // Admin-imported books are published immediately
+  });
+
+  const populated = await Book.findById(book._id).populate("category", "name nameUrdu namePashto slug");
+
+  res.status(201).json({
+    success: true,
+    message: `"${book.title}" was added to the website library!`,
+    book: populated,
   });
 });

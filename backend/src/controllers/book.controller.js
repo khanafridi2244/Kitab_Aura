@@ -1,3 +1,4 @@
+import { Readable } from "node:stream";
 import Book, { LANGUAGES } from "../models/Book.js";
 import Category from "../models/Category.js";
 import ApiError from "../utils/ApiError.js";
@@ -242,4 +243,57 @@ export const updateBook = asyncHandler(async (req, res) => {
     await Promise.all(newFiles.map(deleteFile));
     throw err;
   }
+});
+
+// GET /api/books/:id/pdf (public streaming proxy for external PDFs like Internet Archive)
+export const proxyBookPdf = asyncHandler(async (req, res) => {
+  const book = await Book.findById(req.params.id);
+  if (!book) throw new ApiError(404, "Book not found");
+  if (!book.pdfUrl) throw new ApiError(404, "No PDF available for this book");
+
+  // If already hosted on Cloudinary, redirect to it
+  if (book.pdfUrl.includes("res.cloudinary.com")) {
+    return res.redirect(book.pdfUrl);
+  }
+
+  // Stream from external URL (e.g. Internet Archive) with range request support
+  const rangeHeader = req.headers.range;
+  const fetchHeaders = {
+    "User-Agent": "KitabAura-Library/1.0",
+  };
+  if (rangeHeader) {
+    fetchHeaders["Range"] = rangeHeader;
+  }
+
+  const upstream = await fetch(book.pdfUrl, {
+    headers: fetchHeaders,
+  });
+
+  if (!upstream.ok && upstream.status !== 206) {
+    throw new ApiError(upstream.status, "Failed to stream external PDF");
+  }
+
+  res.status(upstream.status);
+
+  // Forward critical PDF streaming headers
+  const forwardHeaders = [
+    "content-type",
+    "content-length",
+    "content-range",
+    "accept-ranges",
+    "last-modified",
+    "etag",
+  ];
+  upstream.headers.forEach((value, key) => {
+    if (forwardHeaders.includes(key.toLowerCase())) {
+      res.setHeader(key, value);
+    }
+  });
+
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Headers", "Range, Authorization, Content-Type");
+  res.setHeader("Access-Control-Expose-Headers", "Content-Range, Content-Length, Accept-Ranges");
+
+  const stream = Readable.fromWeb(upstream.body);
+  stream.pipe(res);
 });

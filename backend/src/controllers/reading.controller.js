@@ -30,7 +30,20 @@ export const getReading = asyncHandler(async (req, res) => {
     await ReadingProgress.updateOne({ _id: progress._id }, { $set: { status: "reading" } });
   }
 
-  res.json({ success: true, book, lastPage: progress.page });
+  const pdfUrl =
+    book.pdfUrl && !book.pdfUrl.includes("res.cloudinary.com") && book.pdfUrl.startsWith("http")
+      ? `/api/books/${book._id}/pdf`
+      : book.pdfUrl;
+
+  const bookData = {
+    _id: book._id,
+    title: book.title,
+    author: book.author,
+    pdfUrl,
+    pages: book.pages,
+  };
+
+  res.json({ success: true, book: bookData, lastPage: progress.page });
 });
 
 // PUT /api/reading/:bookId  { page }

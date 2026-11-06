@@ -56,6 +56,16 @@ export default function Dashboard() {
       <p className="mt-1 text-sm text-muted">Review uploaded books before they go live in the library.</p>
       <div className="mt-4 flex flex-wrap gap-3">
         <Link
+          to="/admin/import-books"
+          className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark flex items-center gap-1.5"
+        >
+          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          Import Free Books (API)
+        </Link>
+        <Link
           to="/admin/categories"
           className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-primary hover:bg-soft"
         >
@@ -75,12 +85,34 @@ export default function Dashboard() {
         </Link>
         <Link
           to="/admin/blog/new"
-          className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark"
+          className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-primary hover:bg-soft"
         >
           + Create a blog
         </Link>
       </div>
       <StatsPanel refreshKey={reviewCount} />
+
+      {/* Free Books API shortcut */}
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 via-surface to-soft/50 p-5 shadow-xs">
+        <div>
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-accent/20 px-2.5 py-0.5 text-xs font-bold text-accent">
+            Free Public API
+          </div>
+          <h2 className="mt-1 text-base font-bold text-primary">Discover & Import Free Books</h2>
+          <p className="mt-0.5 text-xs text-muted max-w-xl">
+            Browse and import thousands of public domain books in English, Urdu, and Pashto from Internet Archive, Open Library, and Google Books directly into the website library.
+          </p>
+        </div>
+        <div>
+          <Link
+            to="/admin/import-books"
+            className="rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-primary-dark inline-flex items-center gap-1.5"
+          >
+            <span>Search & Import Books</span>
+            <span>&rarr;</span>
+          </Link>
+        </div>
+      </div>
 
       {/* Blog management shortcut */}
       <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">

@@ -156,6 +156,9 @@ export default function Navbar() {
                       <Link to="/admin" className="block px-4 py-2 text-sm font-semibold text-primary hover:bg-soft">
                         Admin dashboard
                       </Link>
+                      <Link to="/admin/import-books" className="block px-4 py-2 text-sm font-semibold text-accent hover:bg-soft">
+                        Import free books (API)
+                      </Link>
                       <Link to="/admin/blog/new" className="block px-4 py-2 text-sm text-primary font-medium hover:bg-soft">
                         + Create a blog
                       </Link>
@@ -230,6 +233,9 @@ export default function Navbar() {
                     <>
                       <Link to="/admin" onClick={closeAll} className={mobileLinkClass(pathname === "/admin")}>
                         Admin dashboard
+                      </Link>
+                      <Link to="/admin/import-books" onClick={closeAll} className={mobileLinkClass(pathname === "/admin/import-books")}>
+                        Import free books (API)
                       </Link>
                       <Link to="/admin/blog/new" onClick={closeAll} className={mobileLinkClass(pathname === "/admin/blog/new")}>
                         + Create a blog

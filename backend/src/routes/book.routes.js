@@ -9,6 +9,7 @@ import {
   deleteBook,
   downloadBook,
   updateBook,
+  proxyBookPdf,
 } from "../controllers/book.controller.js";
 import { protect, authorize } from "../middleware/auth.js";
 import { uploadBookFiles } from "../middleware/upload.js";
@@ -23,6 +24,7 @@ router.get("/mine", protect, getMyBooks);
 router.get("/pending", protect, authorize("admin"), getPendingBooks);
 
 router.get("/:id", getBookById);
+router.get("/:id/pdf", proxyBookPdf);
 
 // Order matters: login check, then file parsing, then validation of the text fields
 router.post("/", protect, uploadBookFiles, validate(createBookSchema), createBook);

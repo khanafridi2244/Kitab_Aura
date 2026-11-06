@@ -1,5 +1,10 @@
 import { Router } from "express";
-import { getStats } from "../controllers/admin.controller.js";
+import {
+  getStats,
+  searchExternalBooks,
+  getExternalBookDetails,
+  importExternalBook,
+} from "../controllers/admin.controller.js";
 import { protect, authorize } from "../middleware/auth.js";
 
 const router = Router();
@@ -8,5 +13,8 @@ const router = Router();
 router.use(protect, authorize("admin"));
 
 router.get("/stats", getStats);
+router.get("/external-books/search", searchExternalBooks);
+router.get("/external-books/details", getExternalBookDetails);
+router.post("/external-books/import", importExternalBook);
 
 export default router;
