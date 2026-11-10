@@ -56,6 +56,14 @@ export default function CategoryCard({ category }) {
         <span className="mt-1 block text-xs text-white/80">
           {bookCount} {bookCount === 1 ? "Book" : "Books"}
         </span>
+        {category.slug === "education" && (
+          <div className="mt-2 flex flex-wrap gap-1 border-t border-white/20 pt-1.5">
+            <span className="rounded bg-white/20 px-1.5 py-0.5 text-[10px] text-white">💻 Computer Science</span>
+            <span className="rounded bg-white/20 px-1.5 py-0.5 text-[10px] text-white">🔬 Science</span>
+            <span className="rounded bg-white/20 px-1.5 py-0.5 text-[10px] text-white">📐 Mathematics</span>
+            <span className="rounded bg-white/20 px-1.5 py-0.5 text-[10px] text-white">📚 Textbooks</span>
+          </div>
+        )}
       </span>
     </Link>
   );

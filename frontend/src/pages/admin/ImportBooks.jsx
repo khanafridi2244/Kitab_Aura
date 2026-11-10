@@ -4,18 +4,36 @@ import api, { getErrorMessage } from "../../api/axios";
 
 const EXTERNAL_CATEGORIES = [
   { id: "all", label: "All Categories", icon: "🌐", mongoSlug: "" },
+  { id: "islamic", label: "Islamic Studies", icon: "🕌", mongoSlug: "islamic-studies" },
   { id: "biography", label: "Biography", icon: "👤", mongoSlug: "biography" },
   { id: "novel", label: "Novel", icon: "📖", mongoSlug: "novel" },
   { id: "art-culture", label: "Art & Culture", icon: "🎨", mongoSlug: "art-culture" },
   { id: "business-management", label: "Business & Management", icon: "💼", mongoSlug: "business-management" },
   { id: "children-s-books", label: "Children's Books", icon: "🧸", mongoSlug: "children-s-books" },
-  { id: "computer-science", label: "Computer Science", icon: "💻", mongoSlug: "computer-science" },
+  {
+    id: "education",
+    label: "Education",
+    icon: "🎓",
+    mongoSlug: "education",
+    subcategories: [
+      { id: "computer-science", label: "Computer Science", icon: "💻", mongoSlug: "computer-science" },
+      { id: "science", label: "Science", icon: "🔬", mongoSlug: "science" },
+      { id: "mathematics", label: "Mathematics", icon: "📐", mongoSlug: "mathematics" },
+      { id: "textbooks", label: "Textbooks", icon: "📚", mongoSlug: "textbooks" },
+    ],
+  },
   { id: "dictionaries", label: "Dictionaries", icon: "📚", mongoSlug: "dictionaries" },
   { id: "drama-plays", label: "Drama & Plays", icon: "🎭", mongoSlug: "drama-plays" },
   { id: "economics", label: "Economics", icon: "📈", mongoSlug: "economics" },
 ];
 
 const CATEGORY_SUGGESTIONS = {
+  islamic: {
+    all: ["Holy Quran English", "Sahih Bukhari", "Tafseer Ibn Kaseer", "Seerat un Nabi", "Islamic History"],
+    english: ["Holy Quran English", "Riyad us Saliheen", "Islamic History", "Prophet Muhammad Biography", "Introduction to Islam"],
+    urdu: ["Tafseer Ibn Kaseer", "Sahih Bukhari Urdu", "Seerat un Nabi", "Riyadus Saliheen Urdu", "Fazail e Amaal"],
+    pashto: ["Tafseer Pashto", "Da Rahman Baba Dewan", "Islami Taleemat", "Seerat un Nabi Pashto", "Pukhto Hadith"],
+  },
   biography: {
     all: ["Albert Einstein", "Steve Jobs", "Seerat un Nabi", "Sawaneh Ghalib", "Da Rahman Baba Jwand"],
     english: ["Albert Einstein", "Abraham Lincoln", "Steve Jobs", "Winston Churchill", "Benjamin Franklin"],
@@ -46,11 +64,35 @@ const CATEGORY_SUGGESTIONS = {
     urdu: ["Bachon Ki Kahaniyan", "Nazmein Bachon Ke Liye", "Tot Batot", "Chacha Chakkan", "Alif Laila"],
     pashto: ["Da Mashomano Qissay", "Da Mashomano Nazmona", "Mashoman", "Pukhto Qissay", "Mashomano Adab"],
   },
+  education: {
+    all: ["Educational Psychology", "Higher Education", "Teaching Methods", "Computer Science", "Pedagogy"],
+    english: ["Educational Psychology", "Higher Education", "Teaching Methods", "Curriculum Design", "Philosophy of Education"],
+    urdu: ["Falsafa e Taleem", "Taleemi Nafsiyat", "Taleem o Tarbiyat", "Nizam e Taleem", "Asri Taleem"],
+    pashto: ["Da Khowdane Usul", "Taleem aw Tarbiya", "Da Taleem Falsafa", "Pukhto Taleem"],
+  },
   "computer-science": {
     all: ["Python Programming", "Algorithms", "Computer Networks", "Database Systems", "Operating Systems"],
     english: ["Python Programming", "Introduction to Algorithms", "Computer Networks", "Database Systems", "Operating Systems"],
     urdu: ["Computer Science", "Information Technology", "Computer Ke Bunyadi Usul", "Programming", "Software Engineering"],
     pashto: ["Computer Science", "Da Computer Zaba", "Information Technology", "Da Computer Asasiyat", "Programming"],
+  },
+  science: {
+    all: ["Physics", "Chemistry", "Biology", "General Science", "Astronomy"],
+    english: ["College Physics", "Organic Chemistry", "Cell Biology", "Astronomy", "Scientific Method"],
+    urdu: ["Bunyadi Science", "Tabiyat", "Keemiya", "Hayatiyat", "Science Aur Kainat"],
+    pashto: ["Da Science Asasiyat", "Physics Pashto", "Chemistry Pashto", "Tabiat"],
+  },
+  mathematics: {
+    all: ["Calculus", "Linear Algebra", "Geometry", "Statistics", "Discrete Mathematics"],
+    english: ["Calculus", "Linear Algebra", "Geometry", "Statistics", "Discrete Mathematics"],
+    urdu: ["Riyazi Ke Usul", "Hisab o Kitab", "Algebra Urdu", "Geometry"],
+    pashto: ["Da Riyazi Asasiyat", "Hisab", "Algebra Pashto"],
+  },
+  textbooks: {
+    all: ["School Textbooks", "College Textbooks", "High School Science", "Study Guides"],
+    english: ["School Textbook", "College Physics", "World History Textbook", "Biology Textbook"],
+    urdu: ["Punjab Textbook", "Sindh Textbook", "KPK Textbook", "Darsi Kutub"],
+    pashto: ["Da Maktab Kitab", "KPK Pashto Textbook", "Darsi Nisab"],
   },
   dictionaries: {
     all: ["Oxford English Dictionary", "Feroz Ul Lughat", "Pashto English Dictionary", "Webster Dictionary"],
@@ -108,6 +150,7 @@ const DEFAULT_SUGGESTIONS = {
 export default function ImportBooks() {
   const [language, setLanguage] = useState("all");
   const [category, setCategory] = useState("all");
+  const [subCategory, setSubCategory] = useState("");
   const [source, setSource] = useState("archive"); // 'archive' | 'openlibrary' | 'google'
   const [query, setQuery] = useState("");
   const [activeQuery, setActiveQuery] = useState("");
@@ -150,6 +193,9 @@ export default function ImportBooks() {
       .catch(() => {});
   }, []);
 
+  // Compute effective category query param (subCategory overrides top category if set)
+  const effectiveCategory = subCategory || (category !== "all" ? category : "");
+
   // Fetch external books on search / filter / page change
   useEffect(() => {
     let active = true;
@@ -158,7 +204,7 @@ export default function ImportBooks() {
         params: {
           q: activeQuery,
           language,
-          category: category !== "all" ? category : undefined,
+          category: effectiveCategory || undefined,
           source,
           page,
           limit: 16,
@@ -190,7 +236,7 @@ export default function ImportBooks() {
     return () => {
       active = false;
     };
-  }, [activeQuery, language, category, source, page]);
+  }, [activeQuery, language, effectiveCategory, source, page]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -224,6 +270,15 @@ export default function ImportBooks() {
   const handleCategoryChange = (newCat) => {
     setSearchResult((s) => ({ ...s, loading: true }));
     setCategory(newCat);
+    setSubCategory("");
+    setPage(1);
+    setQuery("");
+    setActiveQuery("");
+  };
+
+  const handleSubCategoryChange = (newSub) => {
+    setSearchResult((s) => ({ ...s, loading: true }));
+    setSubCategory(newSub);
     setPage(1);
     setQuery("");
     setActiveQuery("");
@@ -240,16 +295,24 @@ export default function ImportBooks() {
     setSelectedBook(book);
     setResolvingDetails(true);
 
-    // Auto-match category from active category filter, book's categoryKey, or fallback
+    // Auto-match category from book's categoryKey, active subCategory, active category, or fallback
     let defaultCatId = "";
     if (categories.length > 0) {
-      const targetSlug = book.categoryKey || (category !== "all" ? category : null);
+      const targetSlug =
+        book.categoryKey ||
+        (subCategory ? subCategory : category !== "all" ? category : null);
+
       if (targetSlug) {
         const cleanTarget = targetSlug.replace(/[^a-z0-9]/g, "");
         const match = categories.find((c) => {
           const cSlug = (c.slug || "").replace(/[^a-z0-9]/g, "");
           const cName = (c.name || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-          return cSlug === cleanTarget || cName === cleanTarget || cSlug.includes(cleanTarget) || cleanTarget.includes(cSlug);
+          return (
+            cSlug === cleanTarget ||
+            cName === cleanTarget ||
+            cSlug.includes(cleanTarget) ||
+            cleanTarget.includes(cSlug)
+          );
         });
         if (match) defaultCatId = match._id;
       }
@@ -343,16 +406,31 @@ export default function ImportBooks() {
 
   const { loading, books, total, totalPages, error } = searchResult;
 
-  // Compute suggestions based on active category and language
+  // Active top-level category object
+  const activeCategoryObj =
+    EXTERNAL_CATEGORIES.find((c) => c.id === category) || EXTERNAL_CATEGORIES[0];
+
+  // Active subcategory object (if any)
+  const activeSubCategoryObj =
+    activeCategoryObj?.subcategories?.find((s) => s.id === subCategory) || null;
+
+  // Key to use for quick suggestions
+  const suggestionKey = subCategory || (category !== "all" ? category : "");
+
+  // Compute suggestions based on active subcategory/category and language
   const suggestionChips =
-    category !== "all" && CATEGORY_SUGGESTIONS[category]
-      ? (CATEGORY_SUGGESTIONS[category][language] || CATEGORY_SUGGESTIONS[category].all || []).map((item) => ({
+    suggestionKey && CATEGORY_SUGGESTIONS[suggestionKey]
+      ? (CATEGORY_SUGGESTIONS[suggestionKey][language] ||
+          CATEGORY_SUGGESTIONS[suggestionKey].all ||
+          []
+        ).map((item) => ({
           label: item,
           query: item,
         }))
       : DEFAULT_SUGGESTIONS[language] || DEFAULT_SUGGESTIONS.all;
 
-  const activeCategoryObj = EXTERNAL_CATEGORIES.find((c) => c.id === category) || EXTERNAL_CATEGORIES[0];
+  const currentActiveLabel =
+    activeSubCategoryObj?.label || (category !== "all" ? activeCategoryObj.label : "all");
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
@@ -390,7 +468,7 @@ export default function ImportBooks() {
           </div>
           <h1 className="text-3xl font-bold font-display text-primary">Discover & Import Books</h1>
           <p className="mt-1 text-sm text-muted">
-            Search millions of free public-domain books across English, Urdu, and Pashto. Filter by categories like Biography, Novel, Computer Science, and Dictionaries to select and add them to the website.
+            Search millions of free public-domain books across English, Urdu, and Pashto. Filter by categories including Islamic Studies, Education (Computer Science, Science, Math, Textbooks), Novel, and Biography to add them to Kitab Aura.
           </p>
         </div>
 
@@ -406,9 +484,9 @@ export default function ImportBooks() {
       <div className="mt-6">
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs font-bold uppercase tracking-wider text-muted">
-            Select Category to Browse ({EXTERNAL_CATEGORIES.length - 1} Special Categories):
+            Categories ({EXTERNAL_CATEGORIES.length - 1} Main Categories):
           </span>
-          {category !== "all" && (
+          {(category !== "all" || subCategory) && (
             <button
               type="button"
               onClick={() => handleCategoryChange("all")}
@@ -435,10 +513,74 @@ export default function ImportBooks() {
               >
                 <span>{cat.icon}</span>
                 <span>{cat.label}</span>
+                {cat.subcategories && (
+                  <span
+                    className={`ml-0.5 rounded-full px-1.5 py-0.5 text-[10px] ${
+                      isSelected ? "bg-white/20 text-white" : "bg-soft text-muted"
+                    }`}
+                  >
+                    {cat.subcategories.length} sub
+                  </span>
+                )}
               </button>
             );
           })}
         </div>
+
+        {/* Nested Subcategories (placed inside Education) */}
+        {activeCategoryObj?.subcategories && (
+          <div className="mt-3.5 rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/5 via-surface to-soft/40 p-4 shadow-xs">
+            <div className="flex items-center justify-between mb-2.5">
+              <span className="text-xs font-bold text-primary flex items-center gap-1.5">
+                <span>🎓</span>
+                <span>Education Disciplines & Subcategories:</span>
+              </span>
+              {subCategory && (
+                <button
+                  type="button"
+                  onClick={() => handleSubCategoryChange("")}
+                  className="text-xs font-semibold text-primary hover:underline"
+                >
+                  View All Education Books
+                </button>
+              )}
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => handleSubCategoryChange("")}
+                className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
+                  !subCategory
+                    ? "bg-primary text-white shadow-xs ring-2 ring-primary/20"
+                    : "bg-surface border border-line text-ink hover:bg-soft"
+                }`}
+              >
+                <span>🎓</span>
+                <span>All Education</span>
+              </button>
+
+              {activeCategoryObj.subcategories.map((sub) => {
+                const isSubSelected = subCategory === sub.id;
+                return (
+                  <button
+                    key={sub.id}
+                    type="button"
+                    onClick={() => handleSubCategoryChange(sub.id)}
+                    className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all ${
+                      isSubSelected
+                        ? "bg-[#0f4c3a] text-white shadow-xs ring-2 ring-[#0f4c3a]/30"
+                        : "bg-surface border border-line text-ink hover:bg-soft hover:border-primary/40"
+                    }`}
+                  >
+                    <span>{sub.icon}</span>
+                    <span>{sub.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Language Tabs & Source Selector */}
@@ -489,7 +631,7 @@ export default function ImportBooks() {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder={`Search ${category !== "all" ? activeCategoryObj.label : "all"} books${
+            placeholder={`Search ${currentActiveLabel} books${
               language !== "all" ? ` in ${language}` : ""
             } by title, author, or keyword...`}
             className="w-full rounded-xl border border-line bg-surface px-4 py-3 text-sm text-ink outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 shadow-xs"
@@ -518,7 +660,7 @@ export default function ImportBooks() {
       {/* Quick Suggestions Chips */}
       <div className="mt-3 flex flex-wrap items-center gap-1.5">
         <span className="text-xs font-medium text-muted">
-          {category !== "all" ? `${activeCategoryObj.label} topics:` : "Popular topics:"}
+          {suggestionKey ? `${currentActiveLabel} topics:` : "Popular topics:"}
         </span>
         {suggestionChips.map((sug) => (
           <button
@@ -540,10 +682,10 @@ export default function ImportBooks() {
           ) : (
             <>
               Found <span className="font-bold text-ink">{total.toLocaleString()}</span> books
-              {category !== "all" && (
+              {effectiveCategory && (
                 <>
                   {" "}
-                  under <span className="font-bold text-[#0f4c3a]">{activeCategoryObj.label}</span>
+                  under <span className="font-bold text-[#0f4c3a]">{currentActiveLabel}</span>
                 </>
               )}{" "}
               from <span className="font-bold text-primary capitalize">{source}</span>
@@ -744,6 +886,7 @@ export default function ImportBooks() {
             type="button"
             onClick={() => {
               setCategory("all");
+              setSubCategory("");
               setLanguage("all");
               setQuery("");
               setActiveQuery("");

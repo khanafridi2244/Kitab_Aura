@@ -2,19 +2,55 @@
  * Service to search and fetch public-domain and open-access books
  * for English, Urdu, and Pashto languages from free APIs (Internet Archive, Open Library, Google Books).
  *
- * Supports dedicated queries for categories:
+ * Supported Categories:
+ * - Islamic Studies
  * - Biography
  * - Novel
  * - Art & Culture
  * - Business & Management
  * - Children's Books
- * - Computer Science
+ * - Education (contains subcategories: Computer Science, Science, Mathematics, Textbooks)
  * - Dictionaries
  * - Drama & Plays
  * - Economics
  */
 
 export const SUPPORTED_EXTERNAL_CATEGORIES = [
+  {
+    key: "islamic",
+    label: "Islamic Studies",
+    labelUrdu: "اسلامی کتب",
+    labelPashto: "اسلامي زده کړې",
+    icon: "🕌",
+    aliases: [
+      "islamic",
+      "islamic-studies",
+      "islam",
+      "quran",
+      "hadith",
+      "tafseer",
+      "fiqh",
+      "seerat",
+      "islami",
+      "islamic studies",
+      "quran-tafseer",
+      "sufism",
+    ],
+    archiveFilter:
+      '(subject:islam OR subject:islamic OR title:islamic OR title:quran OR title:hadith OR title:tafseer OR title:fiqh OR title:seerat OR subject:"islamic studies")',
+    archiveLangOverrides: {
+      urdu: '(title:islam OR title:quran OR title:hadith OR title:tafseer OR title:seerat OR "اسلام" OR "قرآن" OR "حدیث" OR "تفسیر" OR "فقہ")',
+      pashto: '(pashto OR pukhto) AND (islam OR quran OR hadith OR tafseer OR fiqh OR seerat OR "اسلام" OR "قرآن" OR "سیرت")',
+    },
+    googleSubject: "islam",
+    openLibrarySubject: "islam",
+    popularQueries: {
+      english: ["Holy Quran English", "Riyad us Saliheen", "Islamic History", "Prophet Muhammad Biography", "Introduction to Islam"],
+      urdu: ["Tafseer Ibn Kaseer", "Sahih Bukhari Urdu", "Seerat un Nabi", "Riyadus Saliheen Urdu", "Fazail e Amaal"],
+      pashto: ["Tafseer Pashto", "Da Rahman Baba Dewan", "Islami Taleemat", "Seerat un Nabi Pashto", "Pukhto Hadith"],
+      all: ["Islamic Studies", "Quran Tafseer", "Hadith", "Sahih Bukhari", "Islamic History"],
+    },
+  },
   {
     key: "biography",
     label: "Biography",
@@ -121,24 +157,112 @@ export const SUPPORTED_EXTERNAL_CATEGORIES = [
     },
   },
   {
-    key: "computer-science",
-    label: "Computer Science",
-    labelUrdu: "کمپیوٹر سائنس",
-    labelPashto: "کمپیوټر ساینس",
-    icon: "💻",
-    aliases: ["computer-science", "computer science", "cs", "computers", "programming"],
-    archiveFilter: '(subject:"computer science" OR title:"computer science" OR subject:programming OR title:programming OR subject:algorithms)',
+    key: "education",
+    label: "Education",
+    labelUrdu: "تعلیم و تدریس",
+    labelPashto: "ښوونه او روزنه",
+    icon: "🎓",
+    aliases: ["education", "learning", "teaching", "academic", "taleem"],
+    subcategories: [
+      {
+        key: "computer-science",
+        label: "Computer Science",
+        labelUrdu: "کمپیوٹر سائنس",
+        labelPashto: "کمپیوټر ساینس",
+        icon: "💻",
+        aliases: ["computer-science", "computer science", "cs", "programming", "coding", "software", "algorithms"],
+        archiveFilter:
+          '(subject:"computer science" OR title:"computer science" OR subject:programming OR title:programming OR subject:algorithms OR title:algorithms)',
+        archiveLangOverrides: {
+          urdu: '(title:computer OR "کمپیوٹر سائنس" OR "پروگرامنگ")',
+          pashto: '(title:computer OR "کمپیوټر")',
+        },
+        googleSubject: "computer science",
+        openLibrarySubject: "computer_science",
+        popularQueries: {
+          english: ["Python Programming", "Introduction to Algorithms", "Computer Networks", "Database Systems", "Operating Systems"],
+          urdu: ["Computer Science", "Information Technology", "Computer Ke Bunyadi Usul", "Programming", "Software Engineering"],
+          pashto: ["Computer Science", "Da Computer Zaba", "Information Technology", "Da Computer Asasiyat", "Programming"],
+          all: ["Computer Science", "Python Programming", "Algorithms", "Database Systems"],
+        },
+      },
+      {
+        key: "science",
+        label: "Science",
+        labelUrdu: "سائنس",
+        labelPashto: "ساینس",
+        icon: "🔬",
+        aliases: ["science", "physics", "chemistry", "biology", "scientific"],
+        archiveFilter: '(subject:science OR title:science OR subject:physics OR subject:chemistry OR subject:biology)',
+        archiveLangOverrides: {
+          urdu: '(title:science OR title:physics OR title:chemistry OR "سائنس")',
+          pashto: '(title:science OR "ساینس")',
+        },
+        googleSubject: "science",
+        openLibrarySubject: "science",
+        popularQueries: {
+          english: ["General Science", "Physics", "Chemistry", "Biology", "Astronomy"],
+          urdu: ["Bunyadi Science", "Tabiyat", "Keemiya", "Hayatiyat", "Science Aur Kainat"],
+          pashto: ["Da Science Asasiyat", "Physics Pashto", "Chemistry Pashto", "Tabiat"],
+          all: ["Science", "Physics", "Chemistry", "Astronomy"],
+        },
+      },
+      {
+        key: "mathematics",
+        label: "Mathematics",
+        labelUrdu: "ریاضی",
+        labelPashto: "ریاضي",
+        icon: "📐",
+        aliases: ["mathematics", "math", "maths", "algebra", "geometry", "calculus", "statistics"],
+        archiveFilter: '(subject:mathematics OR title:mathematics OR subject:math OR title:algebra OR title:calculus OR title:geometry)',
+        archiveLangOverrides: {
+          urdu: '(title:mathematics OR title:riyazi OR "ریاضی")',
+          pashto: '(title:mathematics OR title:riyazi OR "ریاضي")',
+        },
+        googleSubject: "mathematics",
+        openLibrarySubject: "mathematics",
+        popularQueries: {
+          english: ["Calculus", "Linear Algebra", "Geometry", "Statistics", "Discrete Mathematics"],
+          urdu: ["Riyazi Ke Usul", "Hisab o Kitab", "Algebra Urdu", "Geometry"],
+          pashto: ["Da Riyazi Asasiyat", "Hisab", "Algebra Pashto"],
+          all: ["Mathematics", "Calculus", "Algebra", "Geometry"],
+        },
+      },
+      {
+        key: "textbooks",
+        label: "Textbooks",
+        labelUrdu: "درسی کتب",
+        labelPashto: "درسي کتابونه",
+        icon: "📚",
+        aliases: ["textbooks", "textbook", "darsi", "curriculum", "study-guides"],
+        archiveFilter: '(subject:textbooks OR title:textbook OR title:"text book" OR subject:"study guides")',
+        archiveLangOverrides: {
+          urdu: '(title:textbook OR "درسی کتب" OR "نصاب")',
+          pashto: '(title:textbook OR "درسي کتاب")',
+        },
+        googleSubject: "textbooks",
+        openLibrarySubject: "textbooks",
+        popularQueries: {
+          english: ["School Textbook", "College Physics", "World History Textbook", "Biology Textbook"],
+          urdu: ["Punjab Textbook", "Sindh Textbook", "KPK Textbook", "Darsi Kutub"],
+          pashto: ["Da Maktab Kitab", "KPK Pashto Textbook", "Darsi Nisab"],
+          all: ["Textbooks", "College Textbooks", "High School Textbooks"],
+        },
+      },
+    ],
+    archiveFilter:
+      '(subject:education OR title:education OR subject:pedagogy OR subject:teaching OR title:learning OR subject:"computer science" OR title:"computer science")',
     archiveLangOverrides: {
-      urdu: '(title:computer OR "کمپیوٹر سائنس" OR "پروگرامنگ")',
-      pashto: '(title:computer OR "کمپیوټر")',
+      urdu: '(title:taleem OR title:tadrees OR title:education OR "تعلیم" OR "تدریس")',
+      pashto: '(title:taleem OR title:khowdana OR "ښوونه" OR "روزنه")',
     },
-    googleSubject: "computer science",
-    openLibrarySubject: "computer_science",
+    googleSubject: "education",
+    openLibrarySubject: "education",
     popularQueries: {
-      english: ["Python Programming", "Introduction to Algorithms", "Computer Networks", "Database Systems", "Operating Systems"],
-      urdu: ["Computer Science", "Information Technology", "Computer Ke Bunyadi Usul", "Programming", "Software Engineering"],
-      pashto: ["Computer Science", "Da Computer Zaba", "Information Technology", "Da Computer Asasiyat", "Programming"],
-      all: ["Computer Science", "Python Programming", "Algorithms", "Database Systems"],
+      english: ["Educational Psychology", "Higher Education", "Teaching Methods", "Computer Science Education", "Philosophy of Education"],
+      urdu: ["Falsafa e Taleem", "Taleemi Nafsiyat", "Taleem o Tarbiyat", "Nizam e Taleem", "Asri Taleem"],
+      pashto: ["Da Khowdane Usul", "Taleem aw Tarbiya", "Da Taleem Falsafa", "Pukhto Taleem"],
+      all: ["Education", "Educational Psychology", "Teaching Methods", "Higher Education"],
     },
   },
   {
@@ -209,13 +333,25 @@ export const SUPPORTED_EXTERNAL_CATEGORIES = [
 export function findCategoryDef(catQueryOrSlug = "") {
   if (!catQueryOrSlug) return null;
   const raw = String(catQueryOrSlug).toLowerCase().trim().replace(/[^a-z0-9]/g, "");
-  return (
-    SUPPORTED_EXTERNAL_CATEGORIES.find((cat) => {
-      if (cat.key.replace(/[^a-z0-9]/g, "") === raw) return true;
-      if (cat.label.toLowerCase().replace(/[^a-z0-9]/g, "") === raw) return true;
-      return cat.aliases.some((a) => a.toLowerCase().replace(/[^a-z0-9]/g, "") === raw);
-    }) || null
-  );
+
+  for (const cat of SUPPORTED_EXTERNAL_CATEGORIES) {
+    if (cat.key.replace(/[^a-z0-9]/g, "") === raw) return cat;
+    if (cat.label.toLowerCase().replace(/[^a-z0-9]/g, "") === raw) return cat;
+    if (cat.aliases?.some((a) => a.toLowerCase().replace(/[^a-z0-9]/g, "") === raw)) return cat;
+
+    // Check subcategories (e.g. computer-science, science, mathematics inside education)
+    if (cat.subcategories) {
+      for (const sub of cat.subcategories) {
+        if (sub.key.replace(/[^a-z0-9]/g, "") === raw) return { ...sub, parentKey: cat.key };
+        if (sub.label.toLowerCase().replace(/[^a-z0-9]/g, "") === raw) return { ...sub, parentKey: cat.key };
+        if (sub.aliases?.some((a) => a.toLowerCase().replace(/[^a-z0-9]/g, "") === raw)) {
+          return { ...sub, parentKey: cat.key };
+        }
+      }
+    }
+  }
+
+  return null;
 }
 
 const DEFAULT_POPULAR_QUERIES = {
@@ -323,6 +459,7 @@ export async function searchInternetArchive({
       language: docLang,
       categoryKey: catDef ? catDef.key : undefined,
       categoryLabel: catDef ? catDef.label : undefined,
+      parentCategoryKey: catDef?.parentKey || undefined,
       year: doc.year || (doc.publicdate ? doc.publicdate.substring(0, 4) : ""),
       description: desc.length > 500 ? desc.substring(0, 500) + "..." : desc,
       coverUrl: `https://archive.org/services/img/${identifier}`,
@@ -403,6 +540,7 @@ export async function searchGoogleBooks({
       language: docLang,
       categoryKey: catDef ? catDef.key : undefined,
       categoryLabel: catDef ? catDef.label : undefined,
+      parentCategoryKey: catDef?.parentKey || undefined,
       year: info.publishedDate ? info.publishedDate.substring(0, 4) : "",
       pages: info.pageCount || undefined,
       description: cleanText(info.description) || "",
@@ -486,6 +624,7 @@ export async function searchOpenLibrary({
       language: docLang,
       categoryKey: catDef ? catDef.key : undefined,
       categoryLabel: catDef ? catDef.label : undefined,
+      parentCategoryKey: catDef?.parentKey || undefined,
       year: doc.first_publish_year ? String(doc.first_publish_year) : "",
       pages: doc.number_of_pages_median || undefined,
       description: doc.first_sentence ? doc.first_sentence.join(" ") : "",

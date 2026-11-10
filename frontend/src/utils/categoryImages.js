@@ -41,6 +41,8 @@ const PUBLIC_IMAGES = {
   biography: "/images/categories/history.webp",
   novel: "/images/categories/fiction.webp",
   poetry: "/images/categories/poetry.webp",
+  "islamic-studies": "/images/categories/history.webp",
+  islamic: "/images/categories/history.webp",
 };
 
 // Works with a whole category, or with just a slug

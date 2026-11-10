@@ -1,10 +1,34 @@
-
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api, { getErrorMessage } from "../api/axios";
 import { categoryImage } from "../utils/categoryImages";
 
+// Priority order of featured categories on the homepage
+const FEATURED_SLUGS = [
+  "islamic-studies",
+  "education",
+  "literature",
+  "novel",
+  "biography",
+  "business-management",
+  "art-culture",
+  "children-s-books",
+  "economics",
+  "drama-plays",
+  "dictionaries",
+  "poetry",
+];
+
+// Subcategories that live inside Education
+const EDUCATION_SUBCATS = [
+  { slug: "computer-science", fallbackName: "Computer Science", icon: "💻" },
+  { slug: "science", fallbackName: "Science", icon: "🔬" },
+  { slug: "mathematics", fallbackName: "Mathematics", icon: "📐" },
+  { slug: "textbooks", fallbackName: "Textbooks", icon: "📚" },
+];
+
 export default function CategoryGrid() {
+  const navigate = useNavigate();
   const [reloadKey, setReloadKey] = useState(0);
 
   const [result, setResult] = useState({
@@ -44,12 +68,38 @@ export default function CategoryGrid() {
     };
   }, [reloadKey]);
 
-const hiddenCategories = ["children-books", "dramas-and-plays"];
+  const allCategories = result.categories || [];
 
-const shown = [...result.categories]
-  .filter((category) => !hiddenCategories.includes(category.slug))
-  .sort((a, b) => (b.bookCount || 0) - (a.bookCount || 0))
-  .slice(0, 10);
+  // Map subcategories inside Education with their database IDs
+  const educationSubcategories = EDUCATION_SUBCATS.map((subDef) => {
+    const found = allCategories.find((c) => c.slug === subDef.slug);
+    return {
+      _id: found?._id || subDef.slug,
+      name: found?.name || subDef.fallbackName,
+      slug: subDef.slug,
+      icon: subDef.icon,
+      bookCount: found?.bookCount || 0,
+    };
+  });
+
+  // Filter out subcategories from top-level grid so they are housed inside Education
+  const subcategorySlugs = EDUCATION_SUBCATS.map((s) => s.slug);
+  const hiddenCategories = ["children-books", "dramas-and-plays", ...subcategorySlugs];
+
+  // Prioritize featured categories first (Education, Islamic Studies, Literature, etc.)
+  const featured = FEATURED_SLUGS.map((slug) =>
+    allCategories.find((c) => c.slug === slug)
+  ).filter(Boolean);
+
+  const remaining = allCategories
+    .filter(
+      (c) =>
+        !FEATURED_SLUGS.includes(c.slug) &&
+        !hiddenCategories.includes(c.slug)
+    )
+    .sort((a, b) => (b.bookCount || 0) - (a.bookCount || 0));
+
+  const shown = [...featured, ...remaining].slice(0, 12);
 
   if (!loading && !result.error && shown.length === 0) {
     return null;
@@ -83,7 +133,7 @@ const shown = [...result.categories]
           to="/categories"
           className="hidden text-sm font-semibold text-primary transition hover:underline sm:block"
         >
-          View All
+          View All &rarr;
         </Link>
       </div>
 
@@ -110,12 +160,23 @@ const shown = [...result.categories]
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {shown.map((category) => {
             const image = categoryImage(category);
+            const isEducation = category.slug === "education";
 
             return (
-              <Link
+              <div
                 key={category._id}
-                to={`/browse?category=${category._id}`}
-                className="group relative isolate flex min-h-40 items-end overflow-hidden rounded-2xl bg-gray-200 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl sm:min-h-48"
+                role="button"
+                tabIndex={0}
+                onClick={() => navigate(`/browse?category=${category._id}`)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    navigate(`/browse?category=${category._id}`);
+                  }
+                }}
+                className={`group relative isolate flex flex-col justify-end overflow-hidden rounded-2xl bg-gray-200 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl cursor-pointer ${
+                  isEducation ? "min-h-56 sm:min-h-64" : "min-h-40 sm:min-h-48"
+                }`}
               >
                 {image && (
                   <img
@@ -129,11 +190,13 @@ const shown = [...result.categories]
                   />
                 )}
 
-                <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+                <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/90 via-black/35 to-transparent" />
 
                 <div className="w-full p-4 text-white">
-                  <h3 className="text-base font-bold sm:text-lg">
-                    {category.name}
+                  <h3 className="text-base font-bold sm:text-lg flex items-center gap-1.5">
+                    {isEducation && <span>🎓</span>}
+                    {category.slug === "islamic-studies" && <span>🕌</span>}
+                    <span>{category.name}</span>
                   </h3>
 
                   {(category.nameUrdu || category.namePashto) && (
@@ -147,8 +210,33 @@ const shown = [...result.categories]
                     {category.bookCount || 0}{" "}
                     {(category.bookCount || 0) === 1 ? "Book" : "Books"}
                   </p>
+
+                  {/* Inside Education: place subcategories like Computer Science, Science, etc. */}
+                  {isEducation && (
+                    <div className="mt-3 border-t border-white/20 pt-2.5">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-white/75 mb-1.5">
+                        Disciplines:
+                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        {educationSubcategories.map((sub) => (
+                          <button
+                            key={sub.slug}
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/browse?category=${sub._id}`);
+                            }}
+                            className="inline-flex items-center gap-1 rounded-md bg-white/20 px-2 py-0.5 text-[11px] font-semibold text-white backdrop-blur-xs transition hover:bg-white hover:text-[#0f4c3a]"
+                          >
+                            <span>{sub.icon}</span>
+                            <span>{sub.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </Link>
+              </div>
             );
           })}
         </div>

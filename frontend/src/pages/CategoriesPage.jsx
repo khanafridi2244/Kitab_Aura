@@ -12,7 +12,7 @@ export default function CategoriesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const q = searchParams.get("q") || "";
   const sort = searchParams.get("sort") === "name" ? "name" : "popular";
-  const showEmpty = searchParams.get("empty") === "1";
+  const showEmpty = searchParams.get("empty") !== "0"; // Show all categories by default
 
   const [reloadKey, setReloadKey] = useState(0);
   // "key" records which request these results belong to, so loading = (results are outdated)
@@ -85,10 +85,10 @@ export default function CategoriesPage() {
           <input
             type="checkbox"
             checked={showEmpty}
-            onChange={(e) => update("empty", e.target.checked ? "1" : "")}
+            onChange={(e) => update("empty", e.target.checked ? "" : "0")}
             className="h-4 w-4 accent-[#0f4c3a]"
           />
-          Show empty categories
+          Show all categories
         </label>
       </div>
 
