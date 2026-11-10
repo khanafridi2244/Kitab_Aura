@@ -84,22 +84,33 @@ export const getBooks = asyncHandler(async (req, res) => {
 
   if (category) {
     const catStr = String(category).trim();
+    let targetCat = null;
     if (mongoose.Types.ObjectId.isValid(catStr)) {
-      filter.category = catStr;
-    } else {
-      // Find category by slug or name (case-insensitive)
-      const foundCat = await Category.findOne({
+      targetCat = await Category.findById(catStr);
+    }
+    if (!targetCat) {
+      targetCat = await Category.findOne({
         $or: [
           { slug: catStr.toLowerCase() },
           { name: new RegExp(`^${catStr}$`, "i") },
         ],
       });
-      if (foundCat) {
-        filter.category = foundCat._id;
+    }
+
+    if (targetCat) {
+      // If category is Education, include all education sub-disciplines
+      if (targetCat.slug === "education") {
+        const subCats = await Category.find({
+          slug: { $in: ["computer-science", "mathematics", "textbooks", "science"] },
+        }).select("_id");
+        const categoryIds = [targetCat._id, ...subCats.map((s) => s._id)];
+        filter.category = { $in: categoryIds };
       } else {
-        // Safe ObjectId so non-existent category returns empty list without CastError
-        filter.category = new mongoose.Types.ObjectId();
+        filter.category = targetCat._id;
       }
+    } else {
+      // Safe ObjectId so non-existent category returns empty list without CastError
+      filter.category = new mongoose.Types.ObjectId();
     }
   }
 

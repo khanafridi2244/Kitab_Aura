@@ -17,6 +17,15 @@ export const getCategories = asyncHandler(async (req, res) => {
     categories.forEach((c) => {
       c.bookCount = byId.get(String(c._id)) || 0;
     });
+
+    // Aggregate sub-disciplines into Education parent category
+    const educationCat = categories.find((c) => c.slug === "education");
+    if (educationCat) {
+      const subSlugs = ["computer-science", "mathematics", "textbooks", "science"];
+      const subCats = categories.filter((c) => subSlugs.includes(c.slug));
+      const subCount = subCats.reduce((sum, c) => sum + (c.bookCount || 0), 0);
+      educationCat.bookCount = (educationCat.bookCount || 0) + subCount;
+    }
   }
 
   res.json({ success: true, count: categories.length, categories });

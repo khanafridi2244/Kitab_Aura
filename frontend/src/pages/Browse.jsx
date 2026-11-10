@@ -16,6 +16,13 @@ const SORTS = [
   { value: "title", label: "Title A-Z" },
 ];
 
+const EDUCATION_SUB_SLUGS = [
+  { slug: "computer-science", label: "Computer Science", icon: "💻" },
+  { slug: "mathematics", label: "Mathematics", icon: "📐" },
+  { slug: "textbooks", label: "Textbooks", icon: "📚" },
+  { slug: "science", label: "Science", icon: "🔬" },
+];
+
 const selectClass =
   "w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20";
 
@@ -57,10 +64,10 @@ export default function Browse() {
   const [result, setResult] = useState({ key: null, books: [], total: 0, pages: 1, error: "" });
   const loading = result.key !== key;
 
-  // Load categories once
+  // Load categories once with book counts
   useEffect(() => {
     api
-      .get("/categories")
+      .get("/categories", { params: { counts: true } })
       .then(({ data }) => setCategories(data.categories || []))
       .catch(() => {});
   }, []);
@@ -141,6 +148,11 @@ export default function Browse() {
 
   const hasFilters = q || language || rawCategory || sort !== "newest";
 
+  const educationCategory = categories.find((c) => c.slug === "education");
+  const isEducationActive = currentCategory?.slug === "education";
+  const isEduSubActive = EDUCATION_SUB_SLUGS.some((s) => s.slug === currentCategory?.slug);
+  const showEducationDisciplines = isEducationActive || isEduSubActive;
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -162,6 +174,85 @@ export default function Browse() {
           </div>
         )}
       </div>
+
+      {/* Education Disciplines Toolbar (displayed when Education or its subcategories are viewed) */}
+      {showEducationDisciplines && (
+        <div className="mt-4 rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/5 via-surface to-soft/40 p-4 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+            <div className="flex items-center gap-2">
+              <span className="text-base">🎓</span>
+              <span className="text-xs font-bold text-primary uppercase tracking-wider">
+                Education Disciplines
+              </span>
+            </div>
+            {isEduSubActive && educationCategory && (
+              <button
+                type="button"
+                onClick={() => setParam("category", educationCategory._id)}
+                className="text-xs font-semibold text-primary hover:underline flex items-center gap-1"
+              >
+                <span>&larr;</span>
+                <span>View All Education Books ({educationCategory.bookCount || 0})</span>
+              </button>
+            )}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {/* All Education */}
+            {educationCategory && (
+              <button
+                type="button"
+                onClick={() => setParam("category", educationCategory._id)}
+                className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all shadow-xs ${
+                  isEducationActive
+                    ? "bg-[#0f4c3a] text-white ring-2 ring-[#0f4c3a]/30"
+                    : "bg-surface border border-line text-ink hover:bg-soft"
+                }`}
+              >
+                <span>🎓</span>
+                <span>All Education</span>
+                <span
+                  className={`ml-1 text-[10px] px-1.5 py-0.2 rounded-full ${
+                    isEducationActive ? "bg-white/20 text-white" : "bg-soft text-muted"
+                  }`}
+                >
+                  {educationCategory.bookCount || 0}
+                </span>
+              </button>
+            )}
+
+            {/* Subcategories: Computer Science, Mathematics, Textbooks, Science */}
+            {EDUCATION_SUB_SLUGS.map((subDef) => {
+              const subCat = categories.find((c) => c.slug === subDef.slug);
+              if (!subCat) return null;
+              const isSelected = currentCategory?._id === subCat._id;
+
+              return (
+                <button
+                  key={subDef.slug}
+                  type="button"
+                  onClick={() => setParam("category", subCat._id)}
+                  className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all shadow-xs ${
+                    isSelected
+                      ? "bg-[#0f4c3a] text-white ring-2 ring-[#0f4c3a]/30"
+                      : "bg-surface border border-line text-ink hover:bg-soft"
+                  }`}
+                >
+                  <span>{subDef.icon}</span>
+                  <span>{subCat.name}</span>
+                  <span
+                    className={`ml-1 text-[10px] px-1.5 py-0.2 rounded-full ${
+                      isSelected ? "bg-white/20 text-white" : "bg-soft text-muted"
+                    }`}
+                  >
+                    {subCat.bookCount || 0}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Search */}
       <form onSubmit={handleSearch} className="mt-4 flex overflow-hidden rounded-full border-2 border-primary bg-white">
