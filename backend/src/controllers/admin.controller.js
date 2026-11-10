@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Book from "../models/Book.js";
 import User from "../models/User.js";
 import Category from "../models/Category.js";
@@ -8,6 +9,8 @@ import {
   searchGoogleBooks,
   searchOpenLibrary,
   getArchiveItemDetails,
+  SUPPORTED_EXTERNAL_CATEGORIES,
+  findCategoryDef,
 } from "../services/externalBooks.service.js";
 
 const MONTHS_SHOWN = 6;
@@ -78,19 +81,28 @@ export const getStats = asyncHandler(async (req, res) => {
   });
 });
 
+// GET /api/admin/external-books/categories (admin only)
+// Returns list of supported external categories with multi-language labels and query metadata
+export const getExternalCategories = asyncHandler(async (req, res) => {
+  res.json({
+    success: true,
+    categories: SUPPORTED_EXTERNAL_CATEGORIES,
+  });
+});
+
 // GET /api/admin/external-books/search (admin only)
-// Query params: q, language (urdu|pashto|english|all), source (archive|google|openlibrary), page, limit
+// Query params: q, language (urdu|pashto|english|all), category (biography|novel|art-culture|business-management|children-s-books|computer-science|dictionaries|drama-plays|economics), source (archive|google|openlibrary), page, limit
 export const searchExternalBooks = asyncHandler(async (req, res) => {
-  const { q = "", language = "all", source = "archive", page = 1, limit = 16 } = req.query;
+  const { q = "", language = "all", category = "", source = "archive", page = 1, limit = 16 } = req.query;
 
   let result;
   if (source === "google") {
-    result = await searchGoogleBooks({ query: q, language, page, limit });
+    result = await searchGoogleBooks({ query: q, language, category, page, limit });
   } else if (source === "openlibrary") {
-    result = await searchOpenLibrary({ query: q, language, page, limit });
+    result = await searchOpenLibrary({ query: q, language, category, page, limit });
   } else {
     // Default: Internet Archive (has full readable PDFs for Urdu, Pashto, English)
-    result = await searchInternetArchive({ query: q, language, page, limit });
+    result = await searchInternetArchive({ query: q, language, category, page, limit });
   }
 
   // Cross-reference with our existing books in MongoDB to see which books are already in the website library
@@ -127,6 +139,8 @@ export const searchExternalBooks = asyncHandler(async (req, res) => {
     success: true,
     source,
     language,
+    category: result.category || category || null,
+    categoryInfo: result.categoryInfo || null,
     ...result,
   });
 });
@@ -163,9 +177,35 @@ export const importExternalBook = asyncHandler(async (req, res) => {
   if (!category) throw new ApiError(400, "Category is required");
   if (!pdfUrl?.trim()) throw new ApiError(400, "PDF URL is required");
 
-  // Validate category exists
-  const categoryExists = await Category.exists({ _id: category });
-  if (!categoryExists) throw new ApiError(400, "Selected category does not exist");
+  // Validate or resolve category (accepts ObjectId, slug, or name)
+  let categoryDoc = null;
+  if (mongoose.Types.ObjectId.isValid(category)) {
+    categoryDoc = await Category.findById(category);
+  }
+  if (!categoryDoc) {
+    categoryDoc = await Category.findOne({
+      $or: [
+        { slug: String(category).toLowerCase() },
+        { name: new RegExp(`^${category}$`, "i") },
+      ],
+    });
+  }
+  if (!categoryDoc) {
+    // Also try checking category aliases from SUPPORTED_EXTERNAL_CATEGORIES
+    const def = findCategoryDef(category);
+    if (def) {
+      categoryDoc = await Category.findOne({
+        $or: [
+          { slug: def.key },
+          { name: new RegExp(`^${def.label}$`, "i") },
+        ],
+      });
+    }
+  }
+
+  if (!categoryDoc) {
+    throw new ApiError(400, "Selected category does not exist in library");
+  }
 
   const cleanLang = language.toLowerCase().trim();
   const validLanguages = ["pashto", "urdu", "english", "arabic", "persian"];
@@ -190,7 +230,7 @@ export const importExternalBook = asyncHandler(async (req, res) => {
     title: title.trim().substring(0, 200),
     author: author.trim().substring(0, 100),
     language: cleanLang,
-    category,
+    category: categoryDoc._id,
     description: description.trim().substring(0, 3000),
     pages: pages ? Math.max(1, parseInt(pages, 10)) : undefined,
     coverUrl: coverUrl.trim(),

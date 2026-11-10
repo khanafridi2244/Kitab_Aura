@@ -2,7 +2,77 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api, { getErrorMessage } from "../../api/axios";
 
-const QUICK_SUGGESTIONS = {
+const EXTERNAL_CATEGORIES = [
+  { id: "all", label: "All Categories", icon: "🌐", mongoSlug: "" },
+  { id: "biography", label: "Biography", icon: "👤", mongoSlug: "biography" },
+  { id: "novel", label: "Novel", icon: "📖", mongoSlug: "novel" },
+  { id: "art-culture", label: "Art & Culture", icon: "🎨", mongoSlug: "art-culture" },
+  { id: "business-management", label: "Business & Management", icon: "💼", mongoSlug: "business-management" },
+  { id: "children-s-books", label: "Children's Books", icon: "🧸", mongoSlug: "children-s-books" },
+  { id: "computer-science", label: "Computer Science", icon: "💻", mongoSlug: "computer-science" },
+  { id: "dictionaries", label: "Dictionaries", icon: "📚", mongoSlug: "dictionaries" },
+  { id: "drama-plays", label: "Drama & Plays", icon: "🎭", mongoSlug: "drama-plays" },
+  { id: "economics", label: "Economics", icon: "📈", mongoSlug: "economics" },
+];
+
+const CATEGORY_SUGGESTIONS = {
+  biography: {
+    all: ["Albert Einstein", "Steve Jobs", "Seerat un Nabi", "Sawaneh Ghalib", "Da Rahman Baba Jwand"],
+    english: ["Albert Einstein", "Abraham Lincoln", "Steve Jobs", "Winston Churchill", "Benjamin Franklin"],
+    urdu: ["Seerat un Nabi", "Hayat e Ghalib", "Yadgar e Ghalib", "Hayat Us Sahaba", "Aab e Hayat"],
+    pashto: ["Da Rahman Baba Jwand", "Khushal Khan Sawaneh", "Bacha Khan", "Ahmad Shah Baba", "Pashtano Tareekh"],
+  },
+  novel: {
+    all: ["Pride and Prejudice", "War and Peace", "Umrao Jan Ada", "Peer e Kamil", "Jannat K Pattay"],
+    english: ["Pride and Prejudice", "Great Expectations", "War and Peace", "Sherlock Holmes", "Jane Eyre"],
+    urdu: ["Umrao Jan Ada", "Mirat ul Uroos", "Aag Ka Darya", "Peer e Kamil", "Jannat K Pattay"],
+    pashto: ["Dewan e Rahman Baba", "Pashto Adab", "Da Qissa Khani Qissay", "Patan", "Zama Jwand"],
+  },
+  "art-culture": {
+    all: ["History of Art", "Islamic Art", "Mughal Art", "Pashtun Culture", "World Cultures"],
+    english: ["History of Art", "Renaissance Art", "World Cultures", "Architecture", "Islamic Art"],
+    urdu: ["Hindustani Saqafat", "Islami Funoon", "Tehzeeb o Tamaddun", "Urdu Qalamkaran", "Mughal Art"],
+    pashto: ["Pashtun Culture", "Pashtunwali", "Da Pashto Saqafat", "Pashto Folklore", "Da Pukhtano Riwajuna"],
+  },
+  "business-management": {
+    all: ["Principles of Management", "Leadership", "Business Strategy", "Karobar", "Tijarat"],
+    english: ["Principles of Management", "Leadership", "Business Strategy", "Marketing Management", "Entrepreneurship"],
+    urdu: ["Karobari Rahnuma", "Tijarat o Karobar", "Qayadat Aur Intizamia", "Business Management", "Kamyab Karobar"],
+    pashto: ["Tijarat", "Da Karobar Usul", "Intizamia", "Leadership", "Eqtesad aw Karobar"],
+  },
+  "children-s-books": {
+    all: ["Fairy Tales", "Alice in Wonderland", "Bachon Ki Kahaniyan", "Aesop Fables", "Peter Pan"],
+    english: ["Fairy Tales", "Alice in Wonderland", "Aesop Fables", "Peter Pan", "Grimm Fairy Tales"],
+    urdu: ["Bachon Ki Kahaniyan", "Nazmein Bachon Ke Liye", "Tot Batot", "Chacha Chakkan", "Alif Laila"],
+    pashto: ["Da Mashomano Qissay", "Da Mashomano Nazmona", "Mashoman", "Pukhto Qissay", "Mashomano Adab"],
+  },
+  "computer-science": {
+    all: ["Python Programming", "Algorithms", "Computer Networks", "Database Systems", "Operating Systems"],
+    english: ["Python Programming", "Introduction to Algorithms", "Computer Networks", "Database Systems", "Operating Systems"],
+    urdu: ["Computer Science", "Information Technology", "Computer Ke Bunyadi Usul", "Programming", "Software Engineering"],
+    pashto: ["Computer Science", "Da Computer Zaba", "Information Technology", "Da Computer Asasiyat", "Programming"],
+  },
+  dictionaries: {
+    all: ["Oxford English Dictionary", "Feroz Ul Lughat", "Pashto English Dictionary", "Webster Dictionary"],
+    english: ["Oxford English Dictionary", "Webster Dictionary", "English Etymology", "Roget Thesaurus", "Greek Latin Lexicon"],
+    urdu: ["Feroz Ul Lughat", "Farhang e Asifiya", "Noor ul Lughat", "Jame ul Lughat", "Urdu English Dictionary"],
+    pashto: ["Daryab Pashto Qamoos", "Pashto English Dictionary", "Afghan Qamoos", "Pukhto Lughat", "English to Pashto"],
+  },
+  "drama-plays": {
+    all: ["Shakespeare Plays", "Hamlet", "Anarkali Drama", "Macbeth", "Urdu Dramey"],
+    english: ["Shakespeare Plays", "Hamlet", "Macbeth", "Oedipus Rex", "A Doll's House"],
+    urdu: ["Anarkali Drama", "Agha Hashar Kashmiri", "Urdu Dramey", "Rustam o Sohrab", "Khawaja Moinuddin Dramey"],
+    pashto: ["Pashto Drama", "Da Pukhto Natak", "Hamza Baba Drama", "Pashto Theatre", "Da Meenay Qissa"],
+  },
+  economics: {
+    all: ["Wealth of Nations", "Principles of Economics", "Macroeconomics", "Ilm e Maashiyat", "Finance"],
+    english: ["Wealth of Nations", "Principles of Economics", "Macroeconomics", "Microeconomics", "Capitalism and Freedom"],
+    urdu: ["Ilm e Maashiyat", "Islami Maashiyat", "Maashi Tareekh", "Maashiyat Ke Usul", "Pakistan Ki Maashiyat"],
+    pashto: ["Da Eqtesad Usul", "Eqtesad", "Da Afghanistan Eqtesad", "Maashi Nizam", "Da Pukhtano Eqtesad"],
+  },
+};
+
+const DEFAULT_SUGGESTIONS = {
   urdu: [
     { label: "Allama Iqbal", query: "allama iqbal" },
     { label: "Mirza Ghalib", query: "mirza ghalib" },
@@ -37,6 +107,7 @@ const QUICK_SUGGESTIONS = {
 
 export default function ImportBooks() {
   const [language, setLanguage] = useState("all");
+  const [category, setCategory] = useState("all");
   const [source, setSource] = useState("archive"); // 'archive' | 'openlibrary' | 'google'
   const [query, setQuery] = useState("");
   const [activeQuery, setActiveQuery] = useState("");
@@ -69,7 +140,7 @@ export default function ImportBooks() {
   });
   const [resolvingDetails, setResolvingDetails] = useState(false);
 
-  // Fetch categories once on mount
+  // Fetch website categories once on mount
   useEffect(() => {
     api
       .get("/categories")
@@ -87,6 +158,7 @@ export default function ImportBooks() {
         params: {
           q: activeQuery,
           language,
+          category: category !== "all" ? category : undefined,
           source,
           page,
           limit: 16,
@@ -118,7 +190,7 @@ export default function ImportBooks() {
     return () => {
       active = false;
     };
-  }, [activeQuery, language, source, page]);
+  }, [activeQuery, language, category, source, page]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -130,9 +202,10 @@ export default function ImportBooks() {
   const handleSuggestionClick = (sug) => {
     setSearchResult((s) => ({ ...s, loading: true }));
     setPage(1);
+    const qStr = typeof sug === "string" ? sug : sug.query;
     if (sug.lang) setLanguage(sug.lang);
-    setQuery(sug.query);
-    setActiveQuery(sug.query);
+    setQuery(qStr);
+    setActiveQuery(qStr);
   };
 
   const handlePageChange = (newPage) => {
@@ -143,6 +216,14 @@ export default function ImportBooks() {
   const handleLanguageChange = (newLang) => {
     setSearchResult((s) => ({ ...s, loading: true }));
     setLanguage(newLang);
+    setPage(1);
+    setQuery("");
+    setActiveQuery("");
+  };
+
+  const handleCategoryChange = (newCat) => {
+    setSearchResult((s) => ({ ...s, loading: true }));
+    setCategory(newCat);
     setPage(1);
     setQuery("");
     setActiveQuery("");
@@ -159,13 +240,26 @@ export default function ImportBooks() {
     setSelectedBook(book);
     setResolvingDetails(true);
 
-    // Default category match or first category
+    // Auto-match category from active category filter, book's categoryKey, or fallback
     let defaultCatId = "";
     if (categories.length > 0) {
-      const match = categories.find((c) =>
-        c.name.toLowerCase().includes("literature") || c.name.toLowerCase().includes("poetry")
-      );
-      defaultCatId = match ? match._id : categories[0]._id;
+      const targetSlug = book.categoryKey || (category !== "all" ? category : null);
+      if (targetSlug) {
+        const cleanTarget = targetSlug.replace(/[^a-z0-9]/g, "");
+        const match = categories.find((c) => {
+          const cSlug = (c.slug || "").replace(/[^a-z0-9]/g, "");
+          const cName = (c.name || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+          return cSlug === cleanTarget || cName === cleanTarget || cSlug.includes(cleanTarget) || cleanTarget.includes(cSlug);
+        });
+        if (match) defaultCatId = match._id;
+      }
+
+      if (!defaultCatId) {
+        const fallback = categories.find((c) =>
+          c.name.toLowerCase().includes("literature") || c.name.toLowerCase().includes("novel")
+        );
+        defaultCatId = fallback ? fallback._id : categories[0]._id;
+      }
     }
 
     // Pre-fill form with available data
@@ -181,7 +275,7 @@ export default function ImportBooks() {
       externalId: book.externalId || "",
     });
 
-    // If source is Internet Archive, resolve exact PDF file from files metadata
+    // If source is Internet Archive, resolve exact direct PDF file from archive metadata
     if (book.source === "Internet Archive" && book.externalId) {
       try {
         const { data } = await api.get("/admin/external-books/details", {
@@ -248,7 +342,17 @@ export default function ImportBooks() {
   };
 
   const { loading, books, total, totalPages, error } = searchResult;
-  const currentSuggestions = QUICK_SUGGESTIONS[language] || QUICK_SUGGESTIONS.all;
+
+  // Compute suggestions based on active category and language
+  const suggestionChips =
+    category !== "all" && CATEGORY_SUGGESTIONS[category]
+      ? (CATEGORY_SUGGESTIONS[category][language] || CATEGORY_SUGGESTIONS[category].all || []).map((item) => ({
+          label: item,
+          query: item,
+        }))
+      : DEFAULT_SUGGESTIONS[language] || DEFAULT_SUGGESTIONS.all;
+
+  const activeCategoryObj = EXTERNAL_CATEGORIES.find((c) => c.id === category) || EXTERNAL_CATEGORIES[0];
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
@@ -257,7 +361,9 @@ export default function ImportBooks() {
         <div
           role={toast.type === "error" ? "alert" : "status"}
           className={`mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl px-5 py-3.5 text-sm font-medium shadow-md ${
-            toast.type === "error" ? "bg-red-50 text-red-800 border border-red-200" : "bg-green-50 text-green-900 border border-green-200"
+            toast.type === "error"
+              ? "bg-red-50 text-red-800 border border-red-200"
+              : "bg-green-50 text-green-900 border border-green-200"
           }`}
         >
           <div className="flex items-center gap-2">
@@ -284,7 +390,7 @@ export default function ImportBooks() {
           </div>
           <h1 className="text-3xl font-bold font-display text-primary">Discover & Import Books</h1>
           <p className="mt-1 text-sm text-muted">
-            Search millions of free public domain books in English, Urdu, and Pashto. Select any book to add it directly to Kitab Aura.
+            Search millions of free public-domain books across English, Urdu, and Pashto. Filter by categories like Biography, Novel, Computer Science, and Dictionaries to select and add them to the website.
           </p>
         </div>
 
@@ -296,10 +402,50 @@ export default function ImportBooks() {
         </Link>
       </div>
 
-      {/* Language Tabs & Filters */}
-      <div className="mt-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        {/* Language Tabs */}
+      {/* Category Pills Bar */}
+      <div className="mt-6">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-bold uppercase tracking-wider text-muted">
+            Select Category to Browse ({EXTERNAL_CATEGORIES.length - 1} Special Categories):
+          </span>
+          {category !== "all" && (
+            <button
+              type="button"
+              onClick={() => handleCategoryChange("all")}
+              className="text-xs font-semibold text-primary hover:underline"
+            >
+              Clear Category Filter
+            </button>
+          )}
+        </div>
+
         <div className="flex flex-wrap gap-2">
+          {EXTERNAL_CATEGORIES.map((cat) => {
+            const isSelected = category === cat.id;
+            return (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => handleCategoryChange(cat.id)}
+                className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition-all shadow-xs ${
+                  isSelected
+                    ? "bg-[#0f4c3a] text-white shadow-sm ring-2 ring-[#0f4c3a]/30"
+                    : "bg-surface border border-line text-ink hover:bg-soft hover:border-primary/40"
+                }`}
+              >
+                <span>{cat.icon}</span>
+                <span>{cat.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Language Tabs & Source Selector */}
+      <div className="mt-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between border-t border-line/50 pt-5">
+        {/* Language Tabs */}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-bold text-muted mr-1">Language:</span>
           {[
             { id: "all", label: "🌐 All Languages" },
             { id: "urdu", label: "🇵🇰 Urdu (اردو)" },
@@ -310,9 +456,9 @@ export default function ImportBooks() {
               key={tab.id}
               type="button"
               onClick={() => handleLanguageChange(tab.id)}
-              className={`rounded-xl px-4 py-2 text-sm font-bold transition-all ${
+              className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
                 language === tab.id
-                  ? "bg-primary text-white shadow-sm"
+                  ? "bg-primary text-white shadow-xs"
                   : "bg-surface border border-line text-ink hover:bg-soft"
               }`}
             >
@@ -323,13 +469,13 @@ export default function ImportBooks() {
 
         {/* Source Selector */}
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-muted">API Source:</span>
+          <span className="text-xs font-semibold text-muted">Free API Source:</span>
           <select
             value={source}
             onChange={(e) => handleSourceChange(e.target.value)}
             className="rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-ink outline-none focus:border-primary"
           >
-            <option value="archive">Internet Archive (Free PDFs)</option>
+            <option value="archive">Internet Archive (Direct Free PDFs)</option>
             <option value="openlibrary">Open Library</option>
             <option value="google">Google Books</option>
           </select>
@@ -343,7 +489,9 @@ export default function ImportBooks() {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder={`Search ${language === "all" ? "English, Urdu, or Pashto" : language} books by title, author, or keyword...`}
+            placeholder={`Search ${category !== "all" ? activeCategoryObj.label : "all"} books${
+              language !== "all" ? ` in ${language}` : ""
+            } by title, author, or keyword...`}
             className="w-full rounded-xl border border-line bg-surface px-4 py-3 text-sm text-ink outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 shadow-xs"
           />
           {query && (
@@ -369,15 +517,17 @@ export default function ImportBooks() {
 
       {/* Quick Suggestions Chips */}
       <div className="mt-3 flex flex-wrap items-center gap-1.5">
-        <span className="text-xs font-medium text-muted">Popular topics:</span>
-        {currentSuggestions.map((sug) => (
+        <span className="text-xs font-medium text-muted">
+          {category !== "all" ? `${activeCategoryObj.label} topics:` : "Popular topics:"}
+        </span>
+        {suggestionChips.map((sug) => (
           <button
-            key={sug.label}
+            key={typeof sug === "string" ? sug : sug.label}
             type="button"
             onClick={() => handleSuggestionClick(sug)}
             className="rounded-full border border-line bg-surface px-3 py-1 text-xs font-medium text-ink hover:border-primary hover:text-primary transition-colors"
           >
-            {sug.label}
+            {typeof sug === "string" ? sug : sug.label}
           </button>
         ))}
       </div>
@@ -386,11 +536,17 @@ export default function ImportBooks() {
       <div className="mt-8 flex items-center justify-between">
         <p className="text-sm font-semibold text-muted">
           {loading ? (
-            "Searching free book catalog..."
+            "Searching free books catalog..."
           ) : (
             <>
-              Found <span className="font-bold text-ink">{total.toLocaleString()}</span> books from{" "}
-              <span className="font-bold text-primary capitalize">{source}</span>
+              Found <span className="font-bold text-ink">{total.toLocaleString()}</span> books
+              {category !== "all" && (
+                <>
+                  {" "}
+                  under <span className="font-bold text-[#0f4c3a]">{activeCategoryObj.label}</span>
+                </>
+              )}{" "}
+              from <span className="font-bold text-primary capitalize">{source}</span>
             </>
           )}
         </p>
@@ -462,7 +618,7 @@ export default function ImportBooks() {
               >
                 <div>
                   {/* Book Cover Container */}
-                  <div className="relative aspect-[3/4] w-full overflow-hidden rounded-xl bg-soft flex items-center justify-center">
+                  <div className="relative aspect-3/4 w-full overflow-hidden rounded-xl bg-soft flex items-center justify-center">
                     {book.coverUrl ? (
                       <img
                         src={book.coverUrl}
@@ -582,14 +738,19 @@ export default function ImportBooks() {
         <div className="mt-12 rounded-2xl border border-line bg-surface p-12 text-center">
           <p className="text-lg font-bold text-primary">No books found</p>
           <p className="mt-1 text-sm text-muted">
-            Try a different search query or select another language tab (Urdu, Pashto, or English).
+            Try a different search query or select another category or language tab.
           </p>
           <button
             type="button"
-            onClick={() => handleLanguageChange("all")}
+            onClick={() => {
+              setCategory("all");
+              setLanguage("all");
+              setQuery("");
+              setActiveQuery("");
+            }}
             className="mt-4 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white hover:bg-primary-dark"
           >
-            Reset Filters
+            Reset All Filters
           </button>
         </div>
       )}
@@ -617,7 +778,7 @@ export default function ImportBooks() {
               <h2 className="text-xl font-bold font-display text-ink">Add Book to Website Catalog</h2>
             </div>
             <p className="mt-1 text-xs text-muted">
-              Review and adjust the book details. Once saved, it will immediately be live for all Kitab Aura readers.
+              Review and adjust the book details. Once saved, it will immediately be live for all Kitab Aura readers under the selected category.
             </p>
 
             {resolvingDetails && (
@@ -670,7 +831,7 @@ export default function ImportBooks() {
                   </select>
                 </div>
 
-                {/* Category */}
+                {/* Website Category */}
                 <div>
                   <label className="block text-xs font-bold text-ink">Website Category *</label>
                   <select

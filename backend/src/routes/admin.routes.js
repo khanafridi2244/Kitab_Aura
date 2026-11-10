@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   getStats,
+  getExternalCategories,
   searchExternalBooks,
   getExternalBookDetails,
   importExternalBook,
@@ -13,6 +14,7 @@ const router = Router();
 router.use(protect, authorize("admin"));
 
 router.get("/stats", getStats);
+router.get("/external-books/categories", getExternalCategories);
 router.get("/external-books/search", searchExternalBooks);
 router.get("/external-books/details", getExternalBookDetails);
 router.post("/external-books/import", importExternalBook);
