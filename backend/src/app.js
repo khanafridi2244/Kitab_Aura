@@ -22,9 +22,20 @@ import { notFound, errorHandler } from "./middleware/error.js";
 
 const app = express();
 
-app.use(helmet()); // safer HTTP headers
+// Vercel runs behind a proxy; needed for secure cookies
+app.set("trust proxy", 1);
+
+app.use(helmet());
+
+// CLIENT_URL can hold one or more URLs separated by commas
+const clientUrls = (process.env.CLIENT_URL || "")
+  .split(",")
+  .map((url) => url.trim().replace(/\/$/, ""))
+  .filter(Boolean);
+
 const allowedOrigins = [
-  process.env.CLIENT_URL || "http://localhost:5173",
+  "https://kitab-aurafrontend.vercel.app",
+  ...clientUrls,
   "http://localhost:5173",
   "http://localhost:5174",
 ];
@@ -32,20 +43,25 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: (origin, callback) => {
-      // allow requests with no origin (e.g. mobile apps, curl)
+      // allow requests with no origin (e.g. curl, mobile apps)
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
         callback(new Error(`CORS: origin ${origin} not allowed`));
       }
     },
-    credentials: true, // allow the refresh cookie
+    credentials: true,
   })
 );
+
 app.use(express.json({ limit: "1mb" }));
 app.use(cookieParser());
-app.use(mongoSanitize()); // blocks NoSQL injection like {"$gt": ""}
+app.use(mongoSanitize());
 if (process.env.NODE_ENV !== "production") app.use(morgan("dev"));
+
+app.get("/", (req, res) => {
+  res.json({ success: true, message: "KitabAura API is running" });
+});
 
 app.get("/api/health", (req, res) => {
   res.json({ success: true, message: "KitabAura API is running" });
