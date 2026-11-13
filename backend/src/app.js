@@ -33,18 +33,30 @@ const clientUrls = (process.env.CLIENT_URL || "")
   .map((url) => url.trim().replace(/\/$/, ""))
   .filter(Boolean);
 
+// Exact origins always allowed
 const allowedOrigins = [
   "https://kitab-aurafrontend.vercel.app",
+  "https://kitab-aurabackrend.vercel.app",
   ...clientUrls,
   "http://localhost:5173",
   "http://localhost:5174",
 ];
 
+// Vercel generates preview-deployment URLs like:
+//   kitab-aurafrontend-git-main-sikandars-projects-04a38874.vercel.app
+// This regex allows ALL vercel.app preview URLs that belong to your project.
+const vercelPreviewPattern = /^https:\/\/kitab-aura[a-z0-9-]*\.vercel\.app$/;
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      // allow requests with no origin (e.g. curl, mobile apps)
-      if (!origin || allowedOrigins.includes(origin)) {
+      // allow requests with no origin (e.g. curl, Postman, mobile apps)
+      if (!origin) return callback(null, true);
+
+      if (
+        allowedOrigins.includes(origin) ||
+        vercelPreviewPattern.test(origin)
+      ) {
         callback(null, true);
       } else {
         callback(new Error(`CORS: origin ${origin} not allowed`));
